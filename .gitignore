@@ -1,0 +1,13 @@
+# Compiled class file
+*.pyc
+
+# Log file
+*.log
+
+# AWS Keys
+*.pem
+
+# Package Files #
+*.zip
+*.tar.gz
+*.rar

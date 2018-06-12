@@ -1,4 +1,5 @@
 import sys
+import operator
 from read_from_s3 import get_files_to_read
 from kafka.producer import KafkaProducer
 
@@ -12,7 +13,7 @@ class Producer(object):
 
 
     def enforce_schema(self, msg):
-	return msg
+	return "".join(operator.itemgetter(5,7,10,11)(msg.split(',')))
 
 
     def produce_msgs(self): # ,partition_key):

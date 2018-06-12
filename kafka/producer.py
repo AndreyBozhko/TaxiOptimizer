@@ -13,7 +13,7 @@ class Producer(object):
 
 
     def enforce_schema(self, msg):
-	return "".join(operator.itemgetter(5,7,10,11)(msg.split(',')))
+	return ",".join(operator.itemgetter(5,7,10,11)(msg.split(',')))
 
 
     def produce_msgs(self): # ,partition_key):

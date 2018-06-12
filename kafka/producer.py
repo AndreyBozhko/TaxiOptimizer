@@ -13,7 +13,11 @@ class Producer(object):
 
 
     def enforce_schema(self, msg):
-	return ",".join(operator.itemgetter(5,7,10,11)(msg.split(',')))
+	try:
+	    msg = ",".join(operator.itemgetter(5,7,10,11)(msg.split(',')))
+	except:
+	    msg = ""
+	return msg
 
 
     def produce_msgs(self): # ,partition_key):
@@ -21,13 +25,10 @@ class Producer(object):
 	
 	for obj in self.objs:
             
-	    while True:
+	    for line in obj['Body']._raw_stream:
             
-                message_info = obj['Body']._raw_stream.readline().strip()
+                message_info = line.strip()
            
-		if message_info == "":
-                    break		
- 
                 #print msg_cnt, message_info
                 self.producer.send(self.topic, self.enforce_schema(message_info))
                 msg_cnt += 1

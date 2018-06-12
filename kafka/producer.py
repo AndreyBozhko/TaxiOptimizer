@@ -1,50 +1,42 @@
 import sys
-from getmys3 import getmys3
-#import boto3
+from read_from_s3 import get_files_to_read
 from kafka.producer import KafkaProducer
 
 
 class Producer(object):
 
-    def __init__(self, addr):
+    def __init__(self, topic, addr, pid, cnt):
         self.producer = KafkaProducer(bootstrap_servers=addr)
-        #self.load_s3('andrey-bozhko-bucket-insight', 'nyc_taxi_raw_data/small/trip_data_small_test.csv')
-	gg = getmys3()
-	self.obj = gg.get_object()
-	self.topic = 'my-topic'
+	self.objs = get_files_to_read(pid, cnt)
+	self.topic = topic
 
 
-    #def load_s3(self, bucket, key):
-    #    s3 = boto3.client('s3')
-    #    self.obj = s3.get_object(Bucket=bucket, Key=key)
+    def enforce_schema(self, msg):
+	return msg
 
 
-    def stream_from_s3(self):
-        return self.obj['Body']._raw_stream.readline().strip()
-
-
-    def produce_msgs(self, source_symbol):
+    def produce_msgs(self): # ,partition_key):
         msg_cnt = 0
-        while True:
+	
+	for obj in self.objs:
             
-            try:
-                message_info = self.stream_from_s3()
+	    while True:
+            
+                message_info = obj['Body']._raw_stream.readline().strip()
            
 		if message_info == "":
                     break		
  
-                print msg_cnt, message_info
-                self.producer.send(self.topic, message_info)
+                #print msg_cnt, message_info
+                self.producer.send(self.topic, self.enforce_schema(message_info))
                 msg_cnt += 1
-
-            except:
-                break
 
 
 
 if __name__ == "__main__":
     args = sys.argv
-    ip_addr = str(args[1])
-    partition_key = str(args[2])
-    prod = Producer(ip_addr)
-    prod.produce_msgs(partition_key)
+    topic, ip_addr = map(str, args[1:3])
+    producer_id, producer_count = map(int, args[3:5])
+
+    prod = Producer(topic, ip_addr, producer_id, producer_count)
+    prod.produce_msgs() # ,partition_key)

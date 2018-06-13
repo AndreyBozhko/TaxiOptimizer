@@ -3,7 +3,7 @@ import boto3
 
 def get_files_to_read(producer_id, producer_count):
 
-    with open('s3config.txt') as fin:
+    with open('s3config') as fin:
         config = {row[0]:row[1] for row in map(lambda s: s.strip().split('='), fin.readlines())}
 	bucketname, foldername, mask = config['BUCKET'], config['FOLDER'], config['FILEMASK']
    

@@ -1,0 +1,7 @@
+#!/bin/bash
+
+KEYSPACE=$1
+TABLE=$2
+SCHEMA=$3
+
+cqlsh -e "CREATE TABLE IF NOT EXISTS $KEYSPACE.$TABLE `cat $SCHEMA`;"

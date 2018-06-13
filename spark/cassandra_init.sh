@@ -2,8 +2,10 @@
 
 KEYSPACE=$1
 TABLE=$2
-SCHEMA=$3
+SCHEMAFILE=$3
 
 
-./create_keyspace.sh $KEYSPACE
-./create_table.sh $KEYSPACE $TABLE $SCHEMA
+cqlsh -e "DROP KEYSPACE IF EXISTS $KEYSPACE;"
+cqlsh -e "CREATE KEYSPACE $KEYSPACE WITH REPLICATION={'class': 'SimpleStrategy', 'replication_factor': 1};"
+
+cqlsh -e "CREATE TABLE $KEYSPACE.$TABLE `cat $SCHEMAFILE`;"

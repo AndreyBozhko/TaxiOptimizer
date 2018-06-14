@@ -4,7 +4,6 @@ import sys
 from pyspark.context import SparkConf
 from pyspark_cassandra import CassandraSparkContext
 from helpers import determine_block_ids, determine_time_slot
-#from uuid import uuid4
 
 
 def enforce_schema(msg):
@@ -21,8 +20,32 @@ def enforce_schema(msg):
     if res["block_id"] < 0 or res["time_slot"] < 0:
         return
 
-    #res["unique_id"] = str(uuid4())
     return res
+
+
+def enforce_schema_by_header(msg, headerdict):
+    fields = msg.split(',')
+    res = {}
+
+    lon, lat, psg, dt = map(lambda name: fields[headerdict[name]],
+                            ["pickup_longitude", "pickup_latitude", "passenger_count", "pickup_datetime"])
+
+    try:
+        lon, lat = map(float, [lon, lat])
+        res["passengers"] = int(psg)
+        res["time_slot"] = determine_time_slot(dt)
+        res["block_id"], res["sub_block_id"] = determine_block_ids(lon, lat)
+    except:
+        return
+
+    if res["block_id"] < 0 or res["time_slot"] < 0:
+        return
+
+    return res
+
+
+def infer_headerdict(headerstr, separator):
+    return {s:i for i, s in enumerate(headerstr.split(separator))}
 
 
 

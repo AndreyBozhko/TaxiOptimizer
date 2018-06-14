@@ -5,6 +5,6 @@ TABLE=tbl
 
 cd spark/
 
-spark-submit --packages anguenot:pyspark-cassandra:0.9.0 run_demo.py $KEYSPACE $TABLE
+spark-submit --packages anguenot:pyspark-cassandra:0.9.0 run_demo.py $KEYSPACE $TABLE 2> /dev/null
 
 cd ..

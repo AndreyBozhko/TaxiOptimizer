@@ -24,14 +24,14 @@ def determine_block_ids(lon, lat):
     # size of small block is 0.00025 degree lat/lon
     corner = [(lon+74.25), (lat-40.5)]
 
-    small_block_id = map(lambda x: floor(x/0.00025), corner)
+    small_block_id = map(lambda x: int(floor(x/0.00025)), corner)
     large_block_id = map(lambda x: x/20, small_block_id)
     small_block_id = map(lambda x: x%20, small_block_id)
 
     large_block_id = large_block_id[0]*100 + large_block_id[1]
     small_block_id = small_block_id[0]*20  + small_block_id[1]
 
-    return int(large_block_id), int(small_block_id)
+    return large_block_id, small_block_id
 
 
 

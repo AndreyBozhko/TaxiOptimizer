@@ -6,7 +6,7 @@ import boto3
 import random
 from pyspark.context import SparkConf
 from pyspark_cassandra import CassandraSparkContext
-from helpers import determine_block_ids, determine_time_slot
+from helpers import determine_block_ids, determine_time_slot, determine_subblock_lonlat
 #from uuid import uuid4
 
 
@@ -22,10 +22,10 @@ def enforce_schema(msg):
     res["id"] = fields[3]
     res["id"] = '0'*(4-len(res["id"]))+res["id"]
     res["latitude"], res["longitude"] = lat, lon
-    
-    
-    if res["block_id"] < 0 or res["time_slot"] < 0:	
-	return
+
+
+    if res["block_id"] < 0 or res["time_slot"] < 0:
+        return
 
     return res
 
@@ -77,43 +77,43 @@ if __name__ == '__main__':
 
 
     data = sc.cassandraTable(keyspace, table)
-    
+
     while True:
-	for line in boto3.client('s3').get_object(Bucket=bucketname, Key="nyc_taxi_raw_data/MTA-Bus-Time-2014-08-01-small.txt")["Body"]._raw_stream:
-	    taxi = enforce_schema(line)
-	    if taxi is None:
-		continue
+        for line in boto3.client('s3').get_object(Bucket=bucketname, Key="nyc_taxi_raw_data/MTA-Bus-Time-2014-08-01-small.txt")["Body"]._raw_stream:
+            taxi = enforce_schema(line)
+            if taxi is None:
+                continue
 
-	    blocks = [[taxi["block_id"]]]
-	    blocks.append(get_neighboring_blocks(taxi["block_id"]))
+            blocks = [[taxi["block_id"]]]
+            blocks.append(get_neighboring_blocks(taxi["block_id"]))
 
-	    topspots = []
-	    for i, blks in enumerate(blocks):
-		for blk in blks:
-		    record = map(lambda x: [x["block_id"], x["time_slot"], x["subblock_psgcnt"]],
-				(data.select("block_id", "time_slot", "subblock_psgcnt")
+            topspots = []
+            for i, blks in enumerate(blocks):
+                for blk in blks:
+                    record = map(lambda x: [x["block_id"], x["time_slot"], x["subblock_psgcnt"]],
+                                (data.select("block_id", "time_slot", "subblock_psgcnt")
                                      .where("block_id={}".format(blk))
                                      .where("time_slot={}".format(taxi["time_slot"]+i))
                                      .collect()))
+                    try:
+                        record = record[0]
 
-		    try:
-			record = record[0]
-
-	    	        for j, subblk in enumerate(record[2]):
-			    topspots.append([record[0], record[1], subblk[0], subblk[1]])
-		    except:
-			pass
+                        for j, subblk in enumerate(record[2]):
+                            topspots.append([record[0], record[1], subblk[0], subblk[1]])
+                    except:
+                        pass
 
             topspots = sorted(topspots, key=lambda x:-x[3])[:10]
 
-	    print_taxi(taxi)
-	    if topspots != []:
-		for i, tp in enumerate(topspots):
-		    print_spot(i, tp)
-	    
-	        print "go to spot {}".format(weighted_choice(map(lambda x: x[3], topspots)))
-	    else:
-		print "not enough data"
-	    
-	    print "\n\n"
-	    time.sleep(2)
+            print_taxi(taxi)
+            if topspots != []:
+                for i, tp in enumerate(topspots):
+                    print_spot(i, tp)
+                spotchoice = weighted_choice(map(lambda x: x[3], topspots))
+                lon, lat = determine_subblock_lonlat(topspots[spotchoice][0], topspots[spotchoice][2])
+                print "go to spot {} @ coordinates ({:0.5f}, {:0.5f})".format(spotchoice, lat, lon)
+            else:
+                print "not enough data"
+
+            print "\n\n"
+            time.sleep(2)

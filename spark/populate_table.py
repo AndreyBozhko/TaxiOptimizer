@@ -3,7 +3,7 @@
 import sys
 from pyspark.context import SparkConf
 from pyspark_cassandra import CassandraSparkContext
-from helpers import determine_block_ids, determine_time_slot, determine_top_spots
+from helpers import determine_block_ids, determine_time_slot
 #from uuid import uuid4
 
 

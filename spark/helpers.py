@@ -36,7 +36,7 @@ def determine_block_ids(lon, lat):
 
 
 def determine_subblock_lonlat(block_id, subblock_id):
-    corner = (-74.25, 40.75)
+    corner = (-74.25, 40.5)
     id1, id2 = (block_id/100, block_id%100), (subblock_id/20, subblock_id%20)
     return [corner[i]+id1[i]*0.005+(id2[i]+0.5)*0.00025 for i in range(2)]
 

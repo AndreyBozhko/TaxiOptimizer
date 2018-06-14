@@ -15,10 +15,23 @@ def determine_time_slot(time):
 
 
 
-def determine_block_id(lon, lat):
+def determine_block_ids(lon, lat):
+    # if not in Manhattan
     if abs(lon+74) > 0.24 or abs(lat-40.75) > 0.24:
-	return -1
-    return floor((lon+74.25)*200)*100 + floor((lat-40.5)*200)
+	return -1, -1
+
+    # size of large block is 0.005   degree lat/lon
+    # size of small block is 0.00025 degree lat/lon
+    corner = [(lon+74.25), (lat-40.5)]
+    
+    small_block_id = map(lambda x: floor(x/0.00025), corner)
+    large_block_id = map(lambda x: x/20, small_block_id)
+    small_block_id = map(lambda x: x%20, small_block_id)
+    
+    large_block_id = large_block_id[0]*100 + large_block_id[1]
+    small_block_id = small_block_id[0]*20  + small_block_id[1]
+    
+    return int(large_block_id), int(small_block_id)
 
 
 
@@ -40,28 +53,6 @@ def haversine(lon1, lat1, lon2, lat2):
 
 
 
-def determine_top_spots(collection):
-    
-    radius = 0.0005 # in longitude/latitude
-
-    arr = [[el["longitude"], el["latitude"]] for el in collection]
-    if arr == []:
-        return []
-
-    tree = KDTree(arr)
-    result = sorted(map(lambda pt: (len(tree.query_ball_point(pt[0], radius)), pt[1]), zip(arr, range(len(arr)))), key=lambda x: -x[0])
-
-    clusters = [arr[result[0][1]]]   
-
-    for pt in map(lambda x: arr[x[1]], result):
-        if not True in map(lambda p: scipy.spatial.distance.euclidean(p, pt) <= radius, clusters):
-            clusters.append(pt)
-        if len(clusters) == 10:
-            break
-    
-    return clusters[:]
-
-
-
 if __name__ == "__main__":
     print haversine(-73.94, 40.15, -73.9402, 40.15)
+    print determine_block_ids(-74.03, 40.78)

@@ -1,1 +1,1 @@
-( block_id int, time_slot int, coordinates list<frozen <list<float>>>, PRIMARY KEY (block_id, time_slot) )
+( block_id int, time_slot int, subblock_psgcnt list<frozen <list <int>>>, PRIMARY KEY (block_id, time_slot) )

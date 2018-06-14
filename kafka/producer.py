@@ -14,7 +14,7 @@ class Producer(object):
 
     def enforce_schema(self, msg):
 	try:
-	    msg = ",".join(operator.itemgetter(5,7,10,11)(msg.split(',')))
+	    msg = ",".join(operator.itemgetter(0,1,2,3)(msg.split('\t')))
 	except:
 	    msg = ""
 	return msg

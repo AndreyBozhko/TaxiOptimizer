@@ -1,0 +1,5 @@
+### Required modules ###
+boto3
+kafka-python
+
+# aws cli on master ???

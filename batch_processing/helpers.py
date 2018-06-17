@@ -103,18 +103,6 @@ def infer_headerdict(headerstr, separator):
     return {s:i for i, s in enumerate(headerstr.split(separator))}
 
 
-#def get_s3_bucket_and_folder_old(configfile):
-#    with open(configfile) as fin:
-#        config = {row[0]:row[1] for row in map(lambda s: s.strip().split('='), fin.readlines())}
-#    return config['BUCKET'], config['FOLDER']
-
-
-#def get_s3_bucket_and_folder(configfile):
-#    with open(configfile) as fin:
-#        config = json.load(fin)
-#    return config["BUCKET"], config["FOLDER"]
-
-
 def parse_config(s3_configfile):
     """
     reads configs saved as json record in configuration file and returns them
@@ -122,9 +110,3 @@ def parse_config(s3_configfile):
     :rtype : dict
     """
     return json.load(open(s3_configfile, "r"))
-
-
-
-#if __name__ == "__main__":
-#    print haversine(-73.94, 40.15, -73.9402, 40.15)
-#    print determine_block_ids(-74.03, 40.78)

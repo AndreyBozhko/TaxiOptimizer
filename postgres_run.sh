@@ -1,9 +1,5 @@
 #!/bin/bash
 
-TABLE=tbl
-SCHEMAFILE=schema_postgres
-PASSFILE=/home/ubuntu/.pgpass
-
 S3CONFIGFILE=$PWD/config/s3bucket.ini
 SCHEMAFILE=$PWD/config/rawfieldstouse.ini
 PSQLCONFIGFILE=$PWD/config/postgresql.ini

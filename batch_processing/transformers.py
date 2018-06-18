@@ -5,7 +5,7 @@ import pyspark
 
 ####################################################################
 
-class BatchTransformer(object):
+class BatchTransformer:
     """
     class that reads data from S3 bucket, processes it with Spark
     and saves the results into PostgreSQL database
@@ -14,23 +14,16 @@ class BatchTransformer(object):
     def __init__(self, s3_configfile, schema_configfile, psql_configfile):
         """
         class constructor that initializes the instance according to the configurations
-        of the S3 bucket, ??? and PostgreSQL table
+        of the S3 bucket, raw data and PostgreSQL table
         :type s3_configfile: str
         :type schema_configfile: str
         :type psql_configfile: str
         """
+        self.s3_config = helpers.parse_config(s3_configfile)
+        self.schema = helpers.parse_config(schema_configfile)
         self.psql_config = self.get_psql_config(psql_configfile)
-        self.s3_config = self.get_s3_config(s3_configfile)
+
         self.sc = pyspark.SparkContext.getOrCreate()
-
-
-    def get_s3_config(self, s3_configfile):
-        """
-        returns configurations of the S3 bucket
-        :type s3_configfile: str
-        :rtype : dict
-        """
-        return helpers.parse_config(s3_configfile)
 
 
     def get_psql_config(self, psql_configfile):
@@ -69,9 +62,9 @@ class BatchTransformer(object):
         sqlContext = pyspark.sql.SQLContext(self.sc)
 
         sql_data = sqlContext.createDataFrame(self.data) # need to use Row
-        sql_data.write.jdbc(       url=self.psql_config["url"],
-                                 table=self.psql_config["dbtable"],
-                                  mode=self.psql_config["mode"],
+        sql_data.write.jdbc(url       =self.psql_config["url"],
+                            table     =self.psql_config["dbtable"],
+                            mode      =self.psql_config["mode"],
                             properties=self.psql_config["properties"])
 
 
@@ -79,7 +72,8 @@ class BatchTransformer(object):
         """
         transforms Spark RDD with raw data into RDD with cleaned data
         """
-        self.data = (self.data.map(helpers.clean_data)
+        schema = self.sc.broadcast(self.schema)
+        self.data = (self.data.map(lambda line: helpers.clean_data(line, schema.value))
                          .filter(lambda x: x is not None))
 
 
@@ -105,7 +99,7 @@ class TaxiBatchTransformer(BatchTransformer):
         transforms Spark RDD with raw data into the RDD that contains
         top-10 pickup spots for each block and time slot
         """
-        super(TaxiBatchTransformer, self).spark_transform()
+        BatchTransformer.spark_transform(self)
 
         self.data = (self.data
                         .map(lambda x: ((x["block_id"], x["time_slot"], x["sub_block_id"]), x["passengers"]))

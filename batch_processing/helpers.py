@@ -1,13 +1,15 @@
 import math
 import json
 from datetime import datetime
-#import scipy.spatial
-#from scipy.spatial import KDTree
-#from math import radians, cos, sin, asin, sqrt
 
 
 
 def determine_time_slot(time):
+    """
+    determines time slot of the day based on given datetime
+    :type time: str
+    :rtype : int
+    """
     try:
         dt = datetime.strptime(time, "%Y-%m-%d %H:%M:%S")
     except:
@@ -17,6 +19,12 @@ def determine_time_slot(time):
 
 
 def determine_block_ids(lon, lat):
+    """
+    calculates ids of blocks/subblocks based on given coordinates
+    :type lon: float
+    :type lat: float
+    :rtype : (int, int)
+    """
     # if not in Manhattan
     if abs(lon+74) > 0.24 or abs(lat-40.75) > 0.24:
         return -1, -1
@@ -37,6 +45,12 @@ def determine_block_ids(lon, lat):
 
 
 def determine_subblock_lonlat(block_id, subblock_id):
+    """
+    calculates coordinates of the center of a subblock based on block_id and subblock_id
+    :type block_id: int
+    :type subblock_id: int
+    :rtype : (float, float)
+    """
     corner = (-74.25, 40.5)
     id1, id2 = (block_id/100, block_id%100), (subblock_id/20, subblock_id%20)
     return [corner[i]+id1[i]*0.005+(id2[i]+0.5)*0.00025 for i in range(2)]
@@ -60,29 +74,18 @@ def determine_subblock_lonlat(block_id, subblock_id):
 #     return c * r * 1000 # in meters
 
 
-
-def clean_data(msg):
+def clean_data(msg, schema):
+    """
+    cleans the message msg, leaving only the fields given by schema
+    :type msg: str
+    :type schema: dict
+    :rtype : dict
+    """
     fields = msg.split(',')
     res = {}
 
-    lon, lat = map(float, fields[10:12])
-    res["passengers"] = int(fields[7])
-    res["time_slot"] = determine_time_slot(fields[5])
-    res["block_id"], res["sub_block_id"] = determine_block_ids(lon, lat)
-
-
-    if res["block_id"] < 0 or res["time_slot"] < 0:
-        return
-
-    return res
-
-
-def enforce_schema_by_header(msg, headerdict):
-    fields = msg.split(',')
-    res = {}
-
-    lon, lat, psg, dt = map(lambda name: fields[headerdict[name]],
-                            ["pickup_longitude", "pickup_latitude", "passenger_count", "pickup_datetime"])
+    lon, lat, psg, dt = map(lambda name: fields[schema[name]],
+                            ["longitude", "latitude", "passengers", "datetime"])
 
     try:
         lon, lat = map(float, [lon, lat])
@@ -98,15 +101,10 @@ def enforce_schema_by_header(msg, headerdict):
     return res
 
 
-
-def infer_headerdict(headerstr, separator):
-    return {s:i for i, s in enumerate(headerstr.split(separator))}
-
-
-def parse_config(s3_configfile):
+def parse_config(configfile):
     """
     reads configs saved as json record in configuration file and returns them
-    :type s3_configfile: str
+    :type configfile: str
     :rtype : dict
     """
-    return json.load(open(s3_configfile, "r"))
+    return json.load(open(configfile, "r"))

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 S3CONFIGFILE=$PWD/config/s3bucket.ini
-SCHEMAFILE=$PWD/config/rawfieldstouse.ini
+SCHEMAFILE=$PWD/config/fieldsfromrawdata_small.ini
 PSQLCONFIGFILE=$PWD/config/postgresql.ini
 
 cd batch_processing/

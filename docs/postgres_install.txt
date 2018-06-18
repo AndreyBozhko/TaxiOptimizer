@@ -6,3 +6,11 @@ apt-get install postgresql-10
 
 
 wget https://jdbc.postgresql.org/download/postgresql-42.2.2.jar
+
+
+# add to /etc/postgresql/10/main/pg_hba.conf
+# host all all 0.0.0.0/0 md5
+# host all all ::/0 md5
+
+# set in /etc/postgresql/10/main/postgresql.conf
+# localhost = '*'

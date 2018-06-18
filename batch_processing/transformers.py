@@ -46,7 +46,6 @@ class BatchTransformer:
     def read_from_s3(self):
         """
         reads files from s3 bucket defined by s3_configfile and creates Spark RDD
-        :type s3_configfile: str
         """
         filename = "s3a://{}/{}/{}".format(self.s3_config["BUCKET"],
                                            self.s3_config["FOLDER"],
@@ -57,7 +56,6 @@ class BatchTransformer:
     def save_to_postgresql(self):
         """
         saves result of batch transformation to PostgreSQL database
-        :type data: Spark RDD
         """
         sqlContext = pyspark.sql.SQLContext(self.sc)
 

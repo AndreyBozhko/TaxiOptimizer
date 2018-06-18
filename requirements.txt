@@ -1,5 +1,6 @@
 ### Required modules ###
 boto3
 kafka-python
+lazyreader
 
 # aws cli on master ???

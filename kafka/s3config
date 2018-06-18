@@ -1,3 +1,0 @@
-BUCKET=andrey-bozhko-bucket-insight
-FOLDER=nyc_taxi_raw_data/
-FILEMASK=MTA-Bus-Time-2014-08-01-small.txt

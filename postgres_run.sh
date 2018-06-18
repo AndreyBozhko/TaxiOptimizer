@@ -7,7 +7,7 @@ PSQLCONFIGFILE=$PWD/config/postgresql.ini
 cd batch_processing/
 
 echo "Spark Job executing..."
-spark-submit --jars /home/ubuntu/postgresql-42.2.2.jar populate_postgresql.py $S3CONFIGFILE $SCHEMAFILE $PSQLCONFIGFILE 2> /dev/null
+spark-submit --jars /home/ubuntu/postgresql-42.2.2.jar populate_database.py $S3CONFIGFILE $SCHEMAFILE $PSQLCONFIGFILE 2> /dev/null
 echo "Spark Job completed"
 
 cd ..

@@ -1,12 +1,9 @@
 import os
-import sys
-#import json
-#import psycopg2
 import helpers
 import pyspark
-#import pyspark.sql
-from pyspark.sql.types import ArrayType, IntegerType
 
+
+####################################################################
 
 class BatchTransformer(object):
     """
@@ -44,10 +41,12 @@ class BatchTransformer(object):
         """
         config = helpers.parse_config(psql_configfile)
         config["url"] = "{}{}:{}/".format(config["url"], config["host"], config["port"])
+
         if "password" not in config["properties"].keys():
             passfile = config["passfile"].replace("~", os.getenv("HOME"))
             with open(passfile) as fin:
                 config["properties"]["password"] = fin.readline().strip().split(":")[-1]
+
         return config
 
 
@@ -94,6 +93,8 @@ class BatchTransformer(object):
 
 
 
+####################################################################
+
 class TaxiBatchTransformer(BatchTransformer):
     """
     class that calculates the top-10 pickup spots from historical data
@@ -105,23 +106,11 @@ class TaxiBatchTransformer(BatchTransformer):
         top-10 pickup spots for each block and time slot
         """
         super(TaxiBatchTransformer, self).spark_transform()
-        udf = lambda a: "::".join(map(lambda x: ",".join(map(str, x)), a)) # temporary solution
+
         self.data = (self.data
                         .map(lambda x: ((x["block_id"], x["time_slot"], x["sub_block_id"]), x["passengers"]))
                         .reduceByKey(lambda x,y : x+y)
-                        .map(lambda x: ((x[0][0], x[0][1]), [x[0][2], x[1]]))
+                        .map(lambda x: ((x[0][0], x[0][1]), (x[0][2], x[1])))
                         .groupByKey()
-                        .map(lambda x: {"block_id": x[0][0], "time_slot": x[0][1], "subblock_psgcnt": udf(sorted(x[1], key=lambda z: -z[1])[:10])}))
-
-
-
-if __name__ == '__main__':
-
-    if len(sys.argv) != 4:
-        sys.stderr.write("populate_postgresql.py: Usage pyspark --jars $jars populate_postgresql.py $s3configfile $schema_configfile $postgresconfigfile \n")
-        sys.exit(-1)
-
-    s3_configfile, schema_configfile, psql_configfile = sys.argv[1:4]
-
-    transformer = TaxiBatchTransformer(s3_configfile, schema_configfile, psql_configfile)
-    transformer.run()
+                        .mapValues(lambda vals: sorted(vals, key=lambda x: -x[1])[:10])
+                        .map(lambda x: {"block_id": x[0][0], "time_slot": x[0][1], "subblocks": [el[0] for el in x[1]], "passengers": [el[1] for el in x[1]]}))

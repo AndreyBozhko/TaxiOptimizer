@@ -115,6 +115,8 @@ def replace_envvars_with_vals(dic):
     """
     for a dictionary dic which contains values of the form "$varname",
     replaces such values with the values of corresponding environmental variables
+    :type dic: dict
+    :rtype : dict
     """
     for el in dic.keys():
         val = dic[el]

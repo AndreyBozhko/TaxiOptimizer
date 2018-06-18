@@ -33,12 +33,9 @@ class BatchTransformer:
         :rtype : dict
         """
         config = helpers.parse_config(psql_configfile)
-        config["url"] = "{}{}:{}/".format(config["url"], config["host"], config["port"])
+        config = helpers.replace_envvars_with_vals(config)
 
-        if "password" not in config["properties"].keys():
-            passfile = config["passfile"].replace("~", os.getenv("HOME"))
-            with open(passfile) as fin:
-                config["properties"]["password"] = fin.readline().strip().split(":")[-1]
+        config["url"] = "{}{}:{}/".format(config["url"], config["host"], config["port"])
 
         return config
 

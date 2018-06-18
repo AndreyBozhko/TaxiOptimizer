@@ -1,3 +1,4 @@
+import os
 import math
 import json
 from datetime import datetime
@@ -108,3 +109,18 @@ def parse_config(configfile):
     :rtype : dict
     """
     return json.load(open(configfile, "r"))
+
+
+def replace_envvars_with_vals(dic):
+    """
+    for a dictionary dic which contains values of the form "$varname",
+    replaces such values with the values of corresponding environmental variables
+    """
+    for el in dic.keys():
+        val = dic[el]
+        if type(val) is dict:
+            val = replace_envvars_with_vals(val)
+        else:
+            if type(val) is unicode and len(val) > 0 and val[0] == '$':
+                dic[el] = os.getenv(val[1:])
+    return dic

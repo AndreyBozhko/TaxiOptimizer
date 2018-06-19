@@ -33,8 +33,7 @@ class Producer(object):
         """
         cleans the message msg, leaving only the fields given by schema
         :type msg: str
-        :type schema: dict
-        :rtype : dict ??? json
+        :rtype : json
         """
         try:
             msg = msg.split('\t')

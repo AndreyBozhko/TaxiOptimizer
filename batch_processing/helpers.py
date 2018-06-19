@@ -85,10 +85,11 @@ def clean_data(msg, schema):
     fields = msg.split(',')
     res = {}
 
-    lon, lat, psg, dt = map(lambda name: fields[schema[name]],
-                            ["longitude", "latitude", "passengers", "datetime"])
-
     try:
+
+        lon, lat, psg, dt = map(lambda name: fields[schema[name]],
+                                ["longitude", "latitude", "passengers", "datetime"])
+
         lon, lat = map(float, [lon, lat])
         res["passengers"] = int(psg)
         res["time_slot"] = determine_time_slot(dt)

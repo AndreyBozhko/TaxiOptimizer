@@ -18,6 +18,7 @@ cd batch_processing/
 spark-submit --master spark://$EC2_MASTER_DNS:7077 \
              --jars /home/ubuntu/postgresql-42.2.2.jar \
              --py-files helpers.py \
+             --executor-memory 4G \
              populate_database.py \
              $S3CONFIGFILE $SCHEMAFILE $PSQLCONFIGFILE \
              2> /dev/null

@@ -99,7 +99,7 @@ class TaxiBatchTransformer(BatchTransformer):
         self.data = (self.data
                         .map(lambda x: ((x["block_id"], x["time_slot"], x["sub_block_id"]), x["passengers"]))
                         .reduceByKey(lambda x,y : x+y)
-                        .map(lambda x: ((x[0][0], x[0][1]), (x[0][2], x[1])))
-                        .groupByKey()
+                        .map(lambda x: ((x[0][0], x[0][1]), [(x[0][2], x[1])]))
+                        .reduceByKey(lambda x,y: x+y)
                         .mapValues(lambda vals: sorted(vals, key=lambda x: -x[1])[:10])
                         .map(lambda x: {"block_id": x[0][0], "time_slot": x[0][1], "subblocks": [el[0] for el in x[1]], "passengers": [el[1] for el in x[1]]}))

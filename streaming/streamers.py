@@ -27,10 +27,10 @@ class SparkStreamerFromKafka:
         """
         initializes stream
         """
-        self.dataStream = KafkaUtils.createDirectStream(self.scc,
-                                                        [self.kafka_config["TOPIC"]],
-                                                        #{"metadata.broker.list": self.kafka_config["BROKERS"]})
-                                                         {"bootstrap.servers": self.kafka_config["BROKERS_IP"]})
+        self.dataStream = KafkaUtils.createStream(self.scc,
+                                                  self.kafka_config["ZOOKEEPER_IP"],
+                                                  "spark-streaming-consumer",
+                                                  {self.kafka_config["TOPIC"]: 1})
 
 
     def run(self):

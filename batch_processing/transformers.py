@@ -35,7 +35,10 @@ class BatchTransformer:
         config = helpers.parse_config(psql_configfile)
         config = helpers.replace_envvars_with_vals(config)
 
-        config["url"] = "{}{}:{}/".format(config["url"], config["host"], config["port"])
+        config["url"] = "{}{}:{}/{}".format(config["urlheader"],
+                                            config["host"],
+                                            config["port"],
+                                            config["database"])
 
         return config
 

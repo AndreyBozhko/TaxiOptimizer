@@ -1,5 +1,5 @@
 import sys
-from streamers import SparkStreamer
+from streamers import TaxiStreamer
 
 
 

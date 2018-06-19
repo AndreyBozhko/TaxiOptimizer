@@ -2,7 +2,7 @@ import os, sys
 sys.path.append("../helpers/")
 
 import pyspark
-from helpers import helpers
+import helpers
 #import pyspark.streaming
 from pyspark.streaming.kafka import KafkaUtils
 
@@ -28,9 +28,9 @@ class SparkStreamerFromKafka:
         initializes stream
         """
         self.dataStream = KafkaUtils.createDirectStream(self.scc,
-                                                        self.kafka_config["TOPIC"],
+                                                        [self.kafka_config["TOPIC"]],
                                                         #{"metadata.broker.list": self.kafka_config["BROKERS"]})
-                                                         {"bootstrap.servers": self.kafka_config["SERVERS"]})
+                                                         {"bootstrap.servers": self.kafka_config["BROKERS_IP"]})
 
 
     def run(self):
@@ -59,3 +59,4 @@ class TaxiStreamer(SparkStreamerFromKafka):
         initializes stream
         """
         SparkStreamerFromKafka.produceStream(self)
+        self.dataStream.pprint()

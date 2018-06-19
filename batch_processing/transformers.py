@@ -1,7 +1,7 @@
 import os, sys
 sys.path.append("../helpers/")
 
-from helpers import helpers
+import helpers
 import pyspark
 
 

@@ -127,3 +127,8 @@ def replace_envvars_with_vals(dic):
             if type(val) is unicode and len(val) > 0 and val[0] == '$':
                 dic[el] = os.getenv(val[1:])
     return dic
+
+
+# def map_func(key):
+#     for line in key.get_contents_as_string().splitlines():
+#         yield line.strip()

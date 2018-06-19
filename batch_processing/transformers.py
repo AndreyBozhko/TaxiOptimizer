@@ -47,10 +47,24 @@ class BatchTransformer:
         """
         reads files from s3 bucket defined by s3_configfile and creates Spark RDD
         """
-        filename = "s3a://{}/{}/{}".format(self.s3_config["BUCKET"],
+        filenames = "s3a://{}/{}/{}".format(self.s3_config["BUCKET"],
                                            self.s3_config["FOLDER"],
                                            self.s3_config["RAW_DATA_FILE"])
-        self.data = self.sc.textFile(filename)
+        self.data = self.sc.textFile(filenames)
+
+
+    # def read_from_s3_boto(self):
+    #     """
+    #     reads files from s3 bucket defined by s3_configfile and creates Spark RDD
+    #     """
+    #     from boto.s3.connection import S3Connection
+    #     import os
+    #
+    #     conn = S3Connection(os.getenv("AWS_ACCESS_KEY_ID"), os.getenv("AWS_SECRET_ACCESS_KEY"))
+    #     bucket = conn.get_bucket(self.s3_config["BUCKET"])
+    #     keys = bucket.list(prefix="nyc_taxi_raw_data/yellow/trip_data_2009")
+    #     # Get a Spark context and use it to parallelize the keys
+    #     self.data = self.sc.parallelize(keys).flatMap(helpers.map_func)
 
 
     def save_to_postgresql(self):

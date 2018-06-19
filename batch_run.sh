@@ -1,7 +1,7 @@
 #!/bin/bash
 
 S3CONFIGFILE=$PWD/config/s3bucket.ini
-SCHEMAFILE=$PWD/config/fieldsfromrawdata_small.ini
+SCHEMAFILE=$PWD/config/fieldsfromrawdata.ini
 PSQLCONFIGFILE=$PWD/config/postgresql.ini
 
 EC2_MASTER_DNS=`grep ec2 $SPARK_HOME/conf/spark-env.sh | sed s/".*DNS.."//g | sed s/".$"//g`

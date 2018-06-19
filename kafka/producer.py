@@ -1,8 +1,10 @@
-import sys
+import os, sys
+sys.path.append("../helpers/")
+
 import boto3
 import operator
 import lazyreader
-import helpers
+from helpers import helpers
 from kafka.producer import KafkaProducer
 
 
@@ -68,12 +70,12 @@ if __name__ == "__main__":
 
     args = sys.argv
     if len(args) != 6:
-        sys.stderr("producer.py: Usage producer.py $topic $ip_addr $producer_id $producer_count $s3_configfile \n")
+        sys.stderr("Usage: producer.py <kafkaconfigfile> <s3configfile> \n")
         sys.exit(-1)
 
-    topic, ip_addr = map(str, args[1:3])
-    producer_id, producer_count = map(int, args[3:5])
-    s3_configfile = args[5]
+    #topic, ip_addr = map(str, args[1:3])
+    #producer_id, producer_count = map(int, args[3:5])
+    #s3_configfile = args[5]
 
-    prod = Producer(topic, ip_addr, producer_id, producer_count, s3_configfile)
-    prod.produce_msgs() # ,partition_key)
+    #prod = Producer(topic, ip_addr, producer_id, producer_count, s3_configfile)
+    #prod.produce_msgs() # ,partition_key)

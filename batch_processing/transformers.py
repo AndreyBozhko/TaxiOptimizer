@@ -1,5 +1,7 @@
-import os
-import helpers
+import os, sys
+sys.path.append("../helpers/")
+
+from helpers import helpers
 import pyspark
 
 
@@ -21,26 +23,9 @@ class BatchTransformer:
         """
         self.s3_config = helpers.parse_config(s3_configfile)
         self.schema = helpers.parse_config(schema_configfile)
-        self.psql_config = self.get_psql_config(psql_configfile)
+        self.psql_config = helpers.get_psql_config(psql_configfile)
 
         self.sc = pyspark.SparkContext.getOrCreate()
-
-
-    def get_psql_config(self, psql_configfile):
-        """
-        returns configurations of the PostgreSQL table
-        :type psql_configfile: str
-        :rtype : dict
-        """
-        config = helpers.parse_config(psql_configfile)
-        config = helpers.replace_envvars_with_vals(config)
-
-        config["url"] = "{}{}:{}/{}".format(config["urlheader"],
-                                            config["host"],
-                                            config["port"],
-                                            config["database"])
-
-        return config
 
 
     def read_from_s3(self):

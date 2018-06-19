@@ -112,6 +112,23 @@ def parse_config(configfile):
     return json.load(open(configfile, "r"))
 
 
+def get_psql_config(psql_configfile):
+    """
+    returns configurations of the PostgreSQL table
+    :type psql_configfile: str
+    :rtype : dict
+    """
+    config = parse_config(psql_configfile)
+    config = replace_envvars_with_vals(config)
+
+    config["url"] = "{}{}:{}/{}".format(config["urlheader"],
+                                        config["host"],
+                                        config["port"],
+                                        config["database"])
+
+    return config
+
+
 def replace_envvars_with_vals(dic):
     """
     for a dictionary dic which contains values of the form "$varname",

@@ -1,1 +1,0 @@
-( block_id int, time_slot int, subblock_psgcnt integer[10][2], PRIMARY KEY (block_id, time_slot) )

@@ -68,12 +68,11 @@ class Producer(object):
 
 if __name__ == "__main__":
 
-    args = sys.argv
-    if len(args) != 4:
+    if len(sys.argv) != 4:
         sys.stderr("Usage: producer.py <kafkaconfigfile> <schemafile> <s3configfile> \n")
         sys.exit(-1)
 
-    kafka_configfile, schema_file, s3_configfile = args[1:4]
+    kafka_configfile, schema_file, s3_configfile = sys.argv[1:4]
 
     prod = Producer(kafka_configfile, schema_file, s3_configfile)
     prod.produce_msgs() # ,partition_key)

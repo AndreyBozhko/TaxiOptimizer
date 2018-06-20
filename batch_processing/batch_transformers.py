@@ -1,4 +1,5 @@
-import os, sys
+#import os
+import sys
 sys.path.append("./helpers/")
 
 import helpers
@@ -21,8 +22,8 @@ class BatchTransformer:
         :type schema_configfile: str
         :type psql_configfile: str
         """
-        self.s3_config = helpers.parse_config(s3_configfile)
-        self.schema = helpers.parse_config(schema_configfile)
+        self.s3_config   = helpers.parse_config(s3_configfile)
+        self.schema      = helpers.parse_config(schema_configfile)
         self.psql_config = helpers.get_psql_config(psql_configfile)
 
         self.sc = pyspark.SparkContext.getOrCreate()
@@ -33,8 +34,8 @@ class BatchTransformer:
         reads files from s3 bucket defined by s3_configfile and creates Spark RDD
         """
         filenames = "s3a://{}/{}/{}".format(self.s3_config["BUCKET"],
-                                           self.s3_config["FOLDER"],
-                                           self.s3_config["RAW_DATA_FILE"])
+                                            self.s3_config["FOLDER"],
+                                            self.s3_config["RAW_DATA_FILE"])
         self.data = self.sc.textFile(filenames)
 
 
@@ -47,7 +48,7 @@ class BatchTransformer:
     #
     #     conn = S3Connection(os.getenv("AWS_ACCESS_KEY_ID"), os.getenv("AWS_SECRET_ACCESS_KEY"))
     #     bucket = conn.get_bucket(self.s3_config["BUCKET"])
-    #     keys = bucket.list(prefix="nyc_taxi_raw_data/yellow/trip_data_2009")
+    #     keys = bucket.list(prefix=prefix)
     #     # Get a Spark context and use it to parallelize the keys
     #     self.data = self.sc.parallelize(keys).flatMap(helpers.map_func)
 
@@ -104,4 +105,7 @@ class TaxiBatchTransformer(BatchTransformer):
                         .map(lambda x: ((x[0][0], x[0][1]), [(x[0][2], x[1])]))
                         .reduceByKey(lambda x,y: x+y)
                         .mapValues(lambda vals: sorted(vals, key=lambda x: -x[1])[:10])
-                        .map(lambda x: {"block_id": x[0][0], "time_slot": x[0][1], "subblocks": [el[0] for el in x[1]], "passengers": [el[1] for el in x[1]]}))
+                        .map(lambda x: {"block_id": x[0][0],
+                                        "time_slot": x[0][1],
+                                        "subblocks": [el[0] for el in x[1]],
+                                        "passengers": [el[1] for el in x[1]]}))

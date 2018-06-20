@@ -1,4 +1,4 @@
-import os, sys
+import sys
 sys.path.append("./helpers/")
 
 import pyspark
@@ -19,7 +19,7 @@ class SparkStreamerFromKafka:
         self.scc = pyspark.streaming.StreamingContext(self.sc, batch_interval)
 
         self.kafka_config = helpers.parse_config(kafka_configfile)
-        self.schema = helpers.parse_config(schema_configfile)
+        self.schema       = helpers.parse_config(schema_configfile)
 
 
     def produceStream(self):

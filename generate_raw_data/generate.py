@@ -12,6 +12,7 @@ from datetime import datetime, timedelta
 def transform(line, i):
     """
     generates data by adding some random noise to historical data
+    !!! takes 6 min to generate month of data (on 11 m4.large instances) !!!
     :type line: str
     :type i: int
     :rtype : str
@@ -23,12 +24,17 @@ def transform(line, i):
 
     try:
         # change date and time
-        dt1, dt2 = map(lambda x: datetime.strptime(s[x], "%Y-%m-%d %H:%M:%S"), [i1, i1+1])
+        dt1, dt2 = [datetime.strptime(s[i], "%Y-%m-%d %H:%M:%S") for i in [i1, i1+1]]
         delta = dt2-dt1
-        dt1 = datetime(dt1.year-7*(i+1), dt1.month, dt1.day, dt1.hour, dt1.minute, dt1.second)
+        dt1 = datetime(dt1.year-7*(i+1),
+                       dt1.month,
+                       dt1.day,
+                       dt1.hour,
+                       dt1.minute,
+                       dt1.second)
         dt1 += timedelta(seconds=numpy.random.randint(-250, 250))
         dt2 = dt1 + delta
-        s[i1], s[i1+1] = dt1.strftime("%Y-%m-%d %H:%M:%S"), dt2.strftime("%Y-%m-%d %H:%M:%S")
+        s[i1], s[i1+1] = [dt.strftime("%Y-%m-%d %H:%M:%S") for dt in [dt1, dt2]]
 
         # change passengers
         s[i3] = str(int(s[i3])+1) if numpy.random.random() > 0.75 else s[i3]

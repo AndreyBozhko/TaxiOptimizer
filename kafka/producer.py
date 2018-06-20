@@ -1,5 +1,5 @@
 import os, sys
-sys.path.append("../helpers/")
+sys.path.append("./helpers/")
 
 import json
 import boto3

@@ -1,5 +1,5 @@
 import sys
-from transformers import TaxiBatchTransformer
+from batch_transformers import TaxiBatchTransformer
 
 
 

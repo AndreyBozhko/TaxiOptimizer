@@ -1,9 +1,8 @@
 import os, sys
-sys.path.append("../helpers/")
+sys.path.append("./helpers/")
 
 import pyspark
 import helpers
-#import pyspark.streaming
 from pyspark.streaming.kafka import KafkaUtils
 
 

@@ -2,6 +2,7 @@
 import sys
 sys.path.append("./helpers/")
 
+import json
 import helpers
 import pyspark
 
@@ -69,10 +70,14 @@ class BatchTransformer:
     def spark_transform(self):
         """
         transforms Spark RDD with raw data into RDD with cleaned data
+        adds block_id, sub_block_id and time_slot fields
         """
         schema = self.sc.broadcast(self.schema)
-        self.data = (self.data.map(lambda line: helpers.clean_data(line, schema.value))
-                         .filter(lambda x: x is not None))
+        self.data = (self.data
+                           .map(lambda line: helpers.map_schema(line, schema.value))
+                           .map(helpers.add_block_fields)
+                           .map(helpers.add_time_slot_field)
+                           .filter(lambda x: x is not None))
 
 
     def run(self):
@@ -105,7 +110,11 @@ class TaxiBatchTransformer(BatchTransformer):
                         .map(lambda x: ((x[0][0], x[0][1]), [(x[0][2], x[1])]))
                         .reduceByKey(lambda x,y: x+y)
                         .mapValues(lambda vals: sorted(vals, key=lambda x: -x[1])[:10])
-                        .map(lambda x: {"block_id": x[0][0],
-                                        "time_slot": x[0][1],
-                                        "subblocks": [el[0] for el in x[1]],
-                                        "passengers": [el[1] for el in x[1]]}))
+                        .map(lambda x: {"block_id":       x[0][0],
+                                        "time_slot":      x[0][1],
+                                        "subblocks_psgcnt":  x[1]})
+                        .map(json.dumps))
+                        # .map(lambda x: {"block_id":   x[0][0],
+                        #                 "time_slot":  x[0][1],
+                        #                 "subblocks":  [el[0] for el in x[1]],
+                        #                 "passengers": [el[1] for el in x[1]]}))

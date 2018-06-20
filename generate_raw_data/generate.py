@@ -24,9 +24,9 @@ def transform(line, i):
 
     try:
         # change date and time
-        dt1, dt2 = [datetime.strptime(s[i], "%Y-%m-%d %H:%M:%S") for i in [i1, i1+1]]
+        dt1, dt2 = [datetime.strptime(s[ii], "%Y-%m-%d %H:%M:%S") for ii in [i1, i1+1]]
         delta = dt2-dt1
-        dt1 = datetime(dt1.year-7*(i+1),
+        dt1 = datetime(dt1.year-7*i,
                        dt1.month,
                        dt1.day,
                        dt1.hour,

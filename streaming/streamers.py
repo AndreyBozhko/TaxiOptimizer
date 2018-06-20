@@ -22,21 +22,32 @@ class SparkStreamerFromKafka:
         self.schema       = helpers.parse_config(schema_configfile)
 
 
-    def produceStream(self):
+    def initializeStream(self):
         """
         initializes stream
         """
         self.dataStream = KafkaUtils.createStream(self.scc,
-                                                  self.kafka_config["ZOOKEEPER_IP"],
-                                                  "spark-streaming-consumer",
-                                                  {self.kafka_config["TOPIC"]: 1})
+                                       self.kafka_config["ZOOKEEPER_IP"],
+                                       "spark-streaming-consumer",
+                                       {self.kafka_config["TOPIC"]: self.kafka_config["PARTITIONS"]})
+
+
+    def processStream(self):
+        """
+        cleans the streamed data
+        """
+        self.dataStream = (self.dataStream
+                                    .map(helpers.add_block_fields)
+                                    .map(helpers.add_time_slot_field)
+                                    .filter(lambda x: x is not None))
 
 
     def run(self):
         """
         executes init and starts streaming
         """
-        self.produceStream()
+        self.initializeStream()
+        self.processStream()
         self.scc.start()
         self.scc.awaitTermination()
 
@@ -53,9 +64,29 @@ class TaxiStreamer(SparkStreamerFromKafka):
         self.psql_config = helpers.get_psql_config(psql_configfile)
 
 
-    def produceStream(self):
+    def load_batch_data(self):
         """
-        initializes stream
+        reads result of batch transformation from PostgreSQL database
         """
-        SparkStreamerFromKafka.produceStream(self)
-        self.dataStream.pprint()
+        sqlContext = pyspark.sql.SQLContext(self.sc)
+        return sqlContext.read.jdbc(url       =self.psql_config["url"],
+                                    table     =self.psql_config["dbtable"],
+                                    properties=self.psql_config["properties"])
+
+
+    def processStream(self):
+        """
+        processes stream
+        """
+        sql_data = self.load_batch_data()
+        sql_data.broadcast()
+        #print sql_data.select("subblock").where("block_id=5558").where("time_slot=100")
+
+        SparkStreamerFromKafka.processStream(self)
+
+        results = (self.dataStream
+                            .map(lambda taxi: helpers.get_top_spots(taxi, sql_data)))
+                            #                   "time_slot":helpers.determine_time_slot(line["time_received"])})
+                            #.map(helpers.get_top_spots))
+
+        result.pprint()

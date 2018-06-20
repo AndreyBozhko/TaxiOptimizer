@@ -29,19 +29,19 @@ class Producer(object):
         self.producer = KafkaProducer(bootstrap_servers=self.kafka_config["BROKERS_IP"])
 
 
-    def clean_stream_data(self, msg):
-        """
-        cleans the message msg, leaving only the fields given by schema
-        :type msg: str
-        :rtype : json
-        """
-        try:
-            msg = msg.split('\t')
-            msg = {key:msg[self.schema[key]] for key in self.schema.keys()}
-            msg = json.dumps(msg)
-        except:
-            msg = ""
-        return msg
+    # def clean_stream_data(self, msg):
+    #     """
+    #     cleans the message msg, leaving only the fields given by schema
+    #     :type msg: str
+    #     :rtype : json
+    #     """
+    #     try:
+    #         msg = msg.split('\t')
+    #         msg = {key:msg[self.schema[key]] for key in self.schema.keys()}
+    #         msg = json.dumps(msg)
+    #     except:
+    #         msg = ""
+    #     return msg
 
 
     def produce_msgs(self): # ,partition_key):
@@ -61,7 +61,7 @@ class Producer(object):
 
             #print msg_cnt, message_info
             self.producer.send(self.kafka_config["TOPIC"],
-                               self.clean_stream_data(message_info))
+                               helpers.map_schema(message_info, self.schema))
             msg_cnt += 1
 
 

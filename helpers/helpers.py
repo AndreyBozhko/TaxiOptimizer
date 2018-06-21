@@ -52,19 +52,6 @@ def get_neighboring_blocks(bl):
 
 
 
-# def get_blocks_with_timeslots(bl, ts):
-#     """
-#     returns list of (block_id, time_slot) for blocks that are adjacent to block bl
-#     time_slot is ts for block bl, and (ts+1) for adjacent blocks
-#     time_slot is in range(0, 144)
-#     :type bl: int
-#     :type ts: int
-#     :rtype : list[(int, int)]
-#     """
-#     return [(bl, ts)] + [(b, (ts-1)%144) for b in get_neighboring_blocks(bl)]
-
-
-
 def determine_subblock_lonlat(subblock_id):
     """
     calculates coordinates of the center of a subblock based on block_id and subblock_id
@@ -73,28 +60,7 @@ def determine_subblock_lonlat(subblock_id):
     :rtype : (float, float)
     """
     corner = (-74.25, 40.5)
-    #id1, id2 = (block_id/100, block_id%100), (subblock_id/20, subblock_id%20)
     return [corner[i]+(subblock_id[i]+0.5)*0.00025 for i in range(2)]
-
-
-
-def get_top_spots(taxi, sql_data):
-    """
-
-    :type taxi: dict
-    :rtype : (str, list[int])
-    """
-    #sql_data.createOrReplaceTempView("sql_data")
-
-    res = []
-    for bl, ts in get_blocks_with_timeslots(taxi["block_id"], taxi["time_slot"]):
-        res += [(sql_data.select("subblocks_psgcnt")
-                .where("block_id=".format(bl))
-                .where("time_slot=".format(ts))
-                .collect()), bl]
-    res = sorted(res, key=lambda el: -el[0][1])[:10]
-
-    return [determine_subblock_lonlat(res[1], res[0][0]) for el in res]
 
 
 
@@ -140,6 +106,7 @@ def add_block_fields(record):
     try:
         lon, lat = [float(record[field]) for field in ["longitude", "latitude"]]
         record["block_id"], record["sub_block_id"] = determine_block_ids(lon, lat)
+        record["block_id_x"], record["block_id_y"] = record["block_id"]
     except:
         return
     return dict(record)
@@ -171,36 +138,6 @@ def check_passengers(record):
     if record["passengers"] <= 1:
         return
     return dict(record)
-
-
-
-# def clean_raw_data(msg, schema):
-#     """
-#     cleans the message msg, leaving only the fields given by schema
-#     :type msg: str
-#     :type schema: dict
-#     :rtype : dict
-#     """
-#     fields = msg.split(schema["DELIMITER"])
-#     res = {}
-#
-#     try:
-#
-#         lon, lat, psg, dt = map(lambda name: fields[schema["FIELDS"][name]],
-#                                 ["longitude", "latitude", "passengers", "datetime"])
-#
-#         lon, lat = map(float, [lon, lat])
-#         res["passengers"] = int(psg)
-#         res["time_slot"] = determine_time_slot(dt)
-#         res["block_id"], res["sub_block_id"] = determine_block_ids(lon, lat)
-#
-#     except:
-#         return
-#
-#     if res["block_id"] < 0 or res["time_slot"] < 0:
-#         return
-#
-#     return res
 
 
 
@@ -247,9 +184,3 @@ def replace_envvars_with_vals(dic):
             if type(val) is unicode and len(val) > 0 and val[0] == '$':
                 dic[el] = os.getenv(val[1:])
     return dic
-
-
-
-# def map_func(key):
-#     for line in key.get_contents_as_string().splitlines():
-#         yield line.strip()

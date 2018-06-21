@@ -120,7 +120,6 @@ class TaxiBatchTransformer(BatchTransformer):
         # recalculation of top-10, where for each key=(block_id, time_slot) top-10 is calculated
         # based on top-10 of (block_id, time_slot) and top-10s of (adjacent_block, time_slot+1)
         # from all adjacent blocks
-
         self.data = (self.data
                         .map(lambda x: ( (x["block_id"], x["time_slot"]), x["subblocks_psgcnt"] ))
                         .flatMap(lambda x: [x] + [ ( (bl, (x[0][1]-1) % 144), x[1] ) for bl in helpers.get_neighboring_blocks(x[0][0]) ] )

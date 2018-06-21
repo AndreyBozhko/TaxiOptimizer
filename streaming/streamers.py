@@ -1,6 +1,7 @@
 import sys
 sys.path.append("./helpers/")
 
+import json
 import pyspark
 import helpers
 from pyspark.streaming.kafka import KafkaUtils
@@ -14,7 +15,7 @@ class SparkStreamerFromKafka:
         """
         constructor
         """
-        batch_interval = 1   # 1 second
+        batch_interval = 0.1   # 0.1 second
         self.sc  = pyspark.SparkContext().getOrCreate()
         self.scc = pyspark.streaming.StreamingContext(self.sc, batch_interval)
 
@@ -37,6 +38,7 @@ class SparkStreamerFromKafka:
         cleans the streamed data
         """
         self.dataStream = (self.dataStream
+                                    .map(lambda x: json.loads(x[1]))
                                     .map(helpers.add_block_fields)
                                     .map(helpers.add_time_slot_field)
                                     .filter(lambda x: x is not None))
@@ -79,14 +81,12 @@ class TaxiStreamer(SparkStreamerFromKafka):
         processes stream
         """
         sql_data = self.load_batch_data()
-        sql_data.broadcast()
+        #sql_data.broadcast()
         #print sql_data.select("subblock").where("block_id=5558").where("time_slot=100")
 
         SparkStreamerFromKafka.processStream(self)
 
-        results = (self.dataStream
-                            .map(lambda taxi: helpers.get_top_spots(taxi, sql_data)))
-                            #                   "time_slot":helpers.determine_time_slot(line["time_received"])})
-                            #.map(helpers.get_top_spots))
+        results = (self.dataStream)
+                            #.map(lambda taxi: helpers.get_top_spots(taxi, sql_data)))
 
         result.pprint()

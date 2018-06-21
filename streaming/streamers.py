@@ -91,32 +91,6 @@ class TaxiStreamer(SparkStreamerFromKafka):
                                                                 .getOrCreate())
             return globals()['sparkSessionSingletonInstance']
 
-
-        sqlContext = pyspark.sql.SQLContext(self.sc)
-        sql_data = sqlContext.read.jdbc(url       =self.psql_config["url"],
-                                        table     =self.psql_config["dbtable"],
-                                        properties=self.psql_config["properties"])
-        #sql_data.createOrReplaceTempView("top10")
-        sql_data.cache()
-        sql_data.alias("top10")
-
-        SparkStreamerFromKafka.processStream(self)
-
-
-    def processStream(self):
-        """
-        processes stream
-        """
-
-        # create singleton Spark Session Instance for each RDD
-        def getSparkSessionInstance(sparkConf):
-            if ('sparkSessionSingletonInstance' not in globals()):
-                globals()['sparkSessionSingletonInstance'] = (pyspark.sql.SparkSession
-                                                                .builder
-                                                                .config(conf=sparkConf)
-                                                                .getOrCreate())
-            return globals()['sparkSessionSingletonInstance']
-
         sqlContext = pyspark.sql.SQLContext(self.sc)
         sql_data = sqlContext.read.jdbc(url       =self.psql_config["url"],
                                         table     =self.psql_config["dbtable"],

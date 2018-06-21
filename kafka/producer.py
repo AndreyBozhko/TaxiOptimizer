@@ -58,10 +58,10 @@ class Producer(object):
         for line in lazyreader.lazyread(obj['Body'], delimiter='\n'):
 
             message_info = line.strip()
-
+            msg = helpers.map_schema(message_info, self.schema)
             #print msg_cnt, message_info
             self.producer.send(self.kafka_config["TOPIC"],
-                               helpers.map_schema(message_info, self.schema))
+                               json.dumps(msg))
             msg_cnt += 1
 
 

@@ -23,8 +23,7 @@ case $1 in
                  --py-files $AUX_FILES \
                  --executor-memory 4G \
                  batch_processing/populate_database.py \
-                 $S3CONFIGFILE $SCHEMAFILE1 $PSQLCONFIGFILE \
-                 2> /dev/null
+                 $S3CONFIGFILE $SCHEMAFILE1 $PSQLCONFIGFILE
     ;;
 
   stream)
@@ -37,7 +36,7 @@ case $1 in
     ;;
 
   *)
-  
+
     echo "Usage: ./run.sh [batch|stream]"
     ;;
 

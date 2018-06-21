@@ -77,6 +77,7 @@ class BatchTransformer:
                            .map(lambda line: helpers.map_schema(line, schema.value))
                            .map(helpers.add_block_fields)
                            .map(helpers.add_time_slot_field)
+                           .map(helpers.check_passengers)
                            .filter(lambda x: x is not None))
 
 
@@ -104,17 +105,30 @@ class TaxiBatchTransformer(BatchTransformer):
         """
         BatchTransformer.spark_transform(self)
 
+        # calculation of top-10 spots for each block and time slot
         self.data = (self.data
-                        .map(lambda x: ((x["block_id"], x["time_slot"], x["sub_block_id"]), x["passengers"]))
-                        .reduceByKey(lambda x,y : x+y)
-                        .map(lambda x: ((x[0][0], x[0][1]), [(x[0][2], x[1])]))
+                        .map(lambda x: ( (x["block_id"], x["time_slot"], x["sub_block_id"]), x["passengers"] ))
+                        .reduceByKey(lambda x,y: x+y)
+                        .map(lambda x: ( (x[0][0], x[0][1]), [(x[0][2], x[1])] ))
                         .reduceByKey(lambda x,y: x+y)
                         .mapValues(lambda vals: sorted(vals, key=lambda x: -x[1])[:10])
                         .map(lambda x: {"block_id":       x[0][0],
                                         "time_slot":      x[0][1],
-                                        "subblocks_psgcnt":  x[1]})
-                        .map(json.dumps))
-                        # .map(lambda x: {"block_id":   x[0][0],
-                        #                 "time_slot":  x[0][1],
-                        #                 "subblocks":  [el[0] for el in x[1]],
-                        #                 "passengers": [el[1] for el in x[1]]}))
+                                        "subblocks_psgcnt":  x[1]}))
+
+
+        # recalculation of top-10, where for each key=(block_id, time_slot) top-10 is calculated
+        # based on top-10 of (block_id, time_slot) and top-10s of (adjacent_block, time_slot+1)
+        # from all adjacent blocks
+
+        self.data = (self.data
+                        .map(lambda x: ( (x["block_id"], x["time_slot"]), x["subblocks_psgcnt"] ))
+                        .flatMap(lambda x: [x] + [ ( (bl, (x[0][1]-1) % 144), x[1] ) for bl in helpers.get_neighboring_blocks(x[0][0]) ] )
+                        .reduceByKey(lambda x,y: x+y)
+                        .mapValues(lambda vals: sorted(vals, key=lambda x: -x[1])[:10])
+                        .map(lambda x: {"block_idx":  x[0][0][0],
+                                        "block_idy":  x[0][0][1],
+                                        "time_slot":  x[0][1],
+                                        "longitude":  [helpers.determine_subblock_lonlat(el[0])[0] for el in x[1]],
+                                        "latitude":   [helpers.determine_subblock_lonlat(el[0])[1] for el in x[1]],
+                                        "passengers": [el[1] for el in x[1]] } ))

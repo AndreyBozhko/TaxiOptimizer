@@ -21,11 +21,11 @@ def determine_block_ids(lon, lat):
     calculates ids of blocks/subblocks based on given coordinates
     :type lon: float
     :type lat: float
-    :rtype : (int, int)
+    :rtype : [(int, int), (int, int)]
     """
     # if not in Manhattan
-    if abs(lon+74) > 0.24 or abs(lat-40.75) > 0.24:
-        return -1, -1
+    #if abs(lon+74) > 0.24 or abs(lat-40.75) > 0.24:
+    #    return -1, -1
 
     # size of large block is 0.005   degree lat/lon
     # size of small block is 0.00025 degree lat/lon
@@ -33,40 +33,39 @@ def determine_block_ids(lon, lat):
 
     small_block_id = map(lambda x: int(math.floor(x/0.00025)), corner)
     large_block_id = map(lambda x: x/20, small_block_id)
-    small_block_id = map(lambda x: x%20, small_block_id)
+    #small_block_id = map(lambda x: x%20, small_block_id)
 
-    large_block_id = large_block_id[0]*100 + large_block_id[1]
-    small_block_id = small_block_id[0]*20  + small_block_id[1]
+    #large_block_id = large_block_id[0]*100 + large_block_id[1]
+    #small_block_id = small_block_id[0]*20  + small_block_id[1]
 
-    return large_block_id, small_block_id
+    return tuple(large_block_id), tuple(small_block_id)
 
 
 
 def get_neighboring_blocks(bl):
     """
     returns list of block_id for blocks that are adjacent to block bl
-    (assuming 100x100 block grid)
     :type bl: int
-    :rtype : list[int]
-    """
-    return [x+bl for x in [-1, 1, -100, 100, -99, 99, -101, 101]]
-
-
-
-def get_blocks_with_timeslots(bl, ts):
-    """
-    returns list of (block_id, time_slot) for blocks that are adjacent to block bl
-    time_slot is ts for block bl, and (ts+1) for adjacent blocks
-    time_slot is in range(0, 144)
-    :type bl: int
-    :type ts: int
     :rtype : list[(int, int)]
     """
-    return [(bl, ts)] + [(b, (ts+1)%144) for get_neighboring_blocks(bl) if b >= 0 and (b < 100**2)]
+    return [(bl[0]+i, bl[1]+j) for i in [-1,0,+1] for j in [-1,0,+1] if not (i == 0 and j == 0)]
 
 
 
-def determine_subblock_lonlat(block_id, subblock_id):
+# def get_blocks_with_timeslots(bl, ts):
+#     """
+#     returns list of (block_id, time_slot) for blocks that are adjacent to block bl
+#     time_slot is ts for block bl, and (ts+1) for adjacent blocks
+#     time_slot is in range(0, 144)
+#     :type bl: int
+#     :type ts: int
+#     :rtype : list[(int, int)]
+#     """
+#     return [(bl, ts)] + [(b, (ts-1)%144) for b in get_neighboring_blocks(bl)]
+
+
+
+def determine_subblock_lonlat(subblock_id):
     """
     calculates coordinates of the center of a subblock based on block_id and subblock_id
     :type block_id: int
@@ -74,8 +73,8 @@ def determine_subblock_lonlat(block_id, subblock_id):
     :rtype : (float, float)
     """
     corner = (-74.25, 40.5)
-    id1, id2 = (block_id/100, block_id%100), (subblock_id/20, subblock_id%20)
-    return [corner[i]+id1[i]*0.005+(id2[i]+0.5)*0.00025 for i in range(2)]
+    #id1, id2 = (block_id/100, block_id%100), (subblock_id/20, subblock_id%20)
+    return [corner[i]+(subblock_id[i]+0.5)*0.00025 for i in range(2)]
 
 
 
@@ -139,17 +138,15 @@ def add_block_fields(record):
 
     """
     try:
-        lon, lat = [float(record[field]) for field in ["longitude", "latitude"])
+        lon, lat = [float(record[field]) for field in ["longitude", "latitude"]]
         record["block_id"], record["sub_block_id"] = determine_block_ids(lon, lat)
     except:
-        return
-    if record["block_id"] < 0:
         return
     return dict(record)
 
 
 
-ef add_time_slot_field(record):
+def add_time_slot_field(record):
     """
 
     """
@@ -158,6 +155,20 @@ ef add_time_slot_field(record):
     except:
         return
     if record["time_slot"] < 0:
+        return
+    return dict(record)
+
+
+
+def check_passengers(record):
+    """
+
+    """
+    try:
+        record["passengers"] = int(record["passengers"])
+    except:
+        return
+    if record["passengers"] <= 1:
         return
     return dict(record)
 

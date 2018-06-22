@@ -8,14 +8,13 @@ KAFKACONFIGFILE=$PWD/config/kafka.ini
 
 AUX_FILES=$PWD/helpers/helpers.py
 
-PGPASSWORD=`cat ~/.pgpass | sed s/"\(.*:\)\{4\}"//g`
-
-export PGPASSWORD
-
 
 case $1 in
 
   batch)
+
+    PGPASSWORD=`cat ~/.pgpass | sed s/"\(.*:\)\{4\}"//g`
+    export PGPASSWORD
 
     spark-submit --master spark://$SPARK_BATCH_CLUSTER_0:7077 \
                  --jars $PWD/postgresql-42.2.2.jar \

@@ -92,7 +92,6 @@ def map_schema(line, schema):
     try:
         msg = line.split(schema["DELIMITER"])
         msg = {key:msg[schema["FIELDS"][key]] for key in schema["FIELDS"].keys()}
-        #msg = json.dumps(msg)
     except:
         return
     return msg
@@ -101,7 +100,10 @@ def map_schema(line, schema):
 
 def add_block_fields(record):
     """
-
+    adds fields block_id (tuple), sub_block_id (tuple), block_id_x (int), block_id_y (int)
+    to the record based on existing fields longitude and latitude
+    :type record: dict
+    :rtype : dict
     """
     try:
         lon, lat = [float(record[field]) for field in ["longitude", "latitude"]]
@@ -115,7 +117,9 @@ def add_block_fields(record):
 
 def add_time_slot_field(record):
     """
-
+    adds field time_slot(int) to the record based on existing field datetime
+    :type record: dict
+    :rtype : dict
     """
     try:
         record["time_slot"] = determine_time_slot(record["datetime"])
@@ -129,13 +133,15 @@ def add_time_slot_field(record):
 
 def check_passengers(record):
     """
-
+    converts field passengers from str to int and check if its value is >= 1
+    :type record: dict
+    :rtype : dict
     """
     try:
         record["passengers"] = int(record["passengers"])
     except:
         return
-    if record["passengers"] <= 1:
+    if record["passengers"] < 1:
         return
     return dict(record)
 

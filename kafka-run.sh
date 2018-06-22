@@ -12,8 +12,10 @@ BROKERS_IP=`grep BROKERS $KAFKACONFIGFILE | sed s/".*_IP"//g | sed s/[" "\"]//g 
 
 
 convert () {
-        ans=""
+
+        ans=""    
         for item in `echo $1 | sed s/","/" "/g` ; do
+
                 left=`echo $item | sed s/":.*"//g`
                 right=`echo $item | sed s/".*:"//g`
                 it=`echo $left | sed s/^.//g`

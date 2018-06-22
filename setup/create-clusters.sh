@@ -1,7 +1,6 @@
 #!/bin/bash
 
 for yamlfile in `find $PWD/*/*.yml` ; do
-  peg validate $yamlfile
   peg up $yamlfile
   wait
 done

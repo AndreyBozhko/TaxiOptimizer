@@ -7,8 +7,11 @@
 # AWS Keys
 *.pem
 
-# Package Files #
+# Package Files
 *.zip
 *.tar.gz
 *.rar
 *.jar
+
+# YAML Files
+*.yml

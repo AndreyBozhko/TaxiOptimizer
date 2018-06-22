@@ -28,6 +28,7 @@ class BatchTransformer:
         self.psql_config = helpers.get_psql_config(psql_configfile)
 
         self.sc = pyspark.SparkContext.getOrCreate()
+        self.sc.setLogLevel("ERROR")
 
 
     def read_from_s3(self):

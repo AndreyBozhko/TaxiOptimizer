@@ -19,6 +19,8 @@ class SparkStreamerFromKafka:
         self.sc  = pyspark.SparkContext().getOrCreate()
         self.scc = pyspark.streaming.StreamingContext(self.sc, batch_interval)
 
+        self.sc.setLogLevel("ERROR")
+
         self.kafka_config = helpers.parse_config(kafka_configfile)
         self.schema       = helpers.parse_config(schema_configfile)
 

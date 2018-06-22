@@ -10,9 +10,6 @@ if __name__ == '__main__':
         sys.stderr.write("Usage: spark-submit --packages <packages> stream_data.py <kafkaconfigfile> <schemaconfigfile> <postgresconfigfile> \n")
         sys.exit(-1)
 
-    #sc = pyspark.SparkContext().getOrCreate()
-    #sc.setLogLevel("ERROR")
-
     kafka_configfile, schema_configfile, psql_configfile = sys.argv[1:4]
 
     streamer = TaxiStreamer(kafka_configfile, schema_configfile, psql_configfile)

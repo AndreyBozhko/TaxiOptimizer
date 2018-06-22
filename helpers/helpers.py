@@ -1,6 +1,7 @@
 import os
 import math
 import json
+import subprocess
 from datetime import datetime
 
 
@@ -187,6 +188,8 @@ def replace_envvars_with_vals(dic):
         if type(val) is dict:
             val = replace_envvars_with_vals(val)
         else:
-            if type(val) is unicode and len(val) > 0 and val[0] == '$':
-                dic[el] = os.getenv(val[1:])
+            if type(val) in [unicode, str] and len(val) > 0 and val[0] == '$':
+                #dic[el] = os.getenv(val[1:])
+                command = "echo {}".format(val)
+                dic[el] = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE).stdout.read().strip()
     return dic

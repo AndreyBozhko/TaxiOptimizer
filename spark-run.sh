@@ -11,7 +11,7 @@ AUX_FILES=$PWD/helpers/helpers.py
 
 case $1 in
 
-  batch)
+  --batch)
 
     PGPASSWORD=`cat ~/.pgpass | sed s/"\(.*:\)\{4\}"//g`
     export PGPASSWORD
@@ -24,7 +24,7 @@ case $1 in
                  $S3CONFIGFILE $SCHEMAFILE1 $PSQLCONFIGFILE
     ;;
 
-  stream)
+  --stream)
 
     spark-submit --master spark://$SPARK_STREAM_CLUSTER_0:7077 \
                  --packages org.apache.spark:spark-streaming-kafka-0-8_2.11:2.2.0 \
@@ -36,7 +36,7 @@ case $1 in
 
   *)
 
-    echo "Usage: ./run.sh [batch|stream]"
+    echo "Usage: ./run.sh [--batch|--stream]"
     ;;
 
 esac

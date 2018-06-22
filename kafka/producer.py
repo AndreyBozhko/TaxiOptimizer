@@ -24,6 +24,8 @@ class Producer(object):
         :type s3_configfile: str
         """
         self.kafka_config = helpers.parse_config(kafka_configfile)
+        self.kafka_config = helpers.replace_envvars_with_vals(self.kafka_config)
+
         self.schema = helpers.parse_config(schema_file)
         self.s3_config = helpers.parse_config(s3_configfile)
 

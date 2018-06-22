@@ -106,13 +106,14 @@ class TaxiBatchTransformer(BatchTransformer):
         """
         BatchTransformer.spark_transform(self)
 
+        n = self.psql_config["top_n_to_save"]
         # calculation of top-n spots for each block and time slot
         self.data = (self.data
                         .map(lambda x: ( (x["block_id"], x["time_slot"], x["sub_block_id"]), x["passengers"] ))
                         .reduceByKey(lambda x,y: x+y)
                         .map(lambda x: ( (x[0][0], x[0][1]), [(x[0][2], x[1])] ))
                         .reduceByKey(lambda x,y: x+y)
-                        .mapValues(lambda vals: sorted(vals, key=lambda x: -x[1])[:self.psql_config["top_n_to_save"]])
+                        .mapValues(lambda vals: sorted(vals, key=lambda x: -x[1])[:n])
                         .map(lambda x: {"block_id":       x[0][0],
                                         "time_slot":      x[0][1],
                                         "subblocks_psgcnt":  x[1]}))
@@ -125,7 +126,7 @@ class TaxiBatchTransformer(BatchTransformer):
                         .map(lambda x: ( (x["block_id"], x["time_slot"]), x["subblocks_psgcnt"] ))
                         .flatMap(lambda x: [x] + [ ( (bl, (x[0][1]-1) % 144), x[1] ) for bl in helpers.get_neighboring_blocks(x[0][0]) ] )
                         .reduceByKey(lambda x,y: x+y)
-                        .mapValues(lambda vals: sorted(vals, key=lambda x: -x[1])[:self.psql_config["top_n_to_save"]])
+                        .mapValues(lambda vals: sorted(vals, key=lambda x: -x[1])[:n])
                         .map(lambda x: {"block_idx":  x[0][0][0],
                                         "block_idy":  x[0][0][1],
                                         "time_slot":  x[0][1],

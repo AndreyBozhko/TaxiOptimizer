@@ -126,8 +126,8 @@ def add_time_slot_field(record):
         record["time_slot"] = determine_time_slot(record["datetime"])
     except:
         return
-    if record["time_slot"] < 0:
-        return
+    #if record["time_slot"] < 0:
+    #    return
     return dict(record)
 
 

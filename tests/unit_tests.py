@@ -115,7 +115,7 @@ class TestHelpersMethods(unittest.TestCase):
 
             self.assertEqual(dic2,
                     helpers.replace_envvars_with_vals(dic1),
-                    "did not correctly parse environmental variables {} {}".format(helpers.replace_envvars_with_vals(dic1), dic2))
+                    "did not correctly parse environmental variables")
 
 
 

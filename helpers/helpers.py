@@ -154,7 +154,8 @@ def parse_config(configfile):
     :type configfile: str
     :rtype : dict
     """
-    return json.load(open(configfile, "r"))
+    conf = json.load(open(configfile, "r"))
+    return replace_envvars_with_vals(conf)
 
 
 
@@ -165,8 +166,7 @@ def get_psql_config(psql_configfile):
     :rtype : dict
     """
     config = parse_config(psql_configfile)
-    config = replace_envvars_with_vals(config)
-
+    
     config["url"] = "{}{}:{}/{}".format(config["urlheader"],
                                         config["host"],
                                         config["port"],

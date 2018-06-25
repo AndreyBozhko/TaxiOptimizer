@@ -21,7 +21,6 @@ class SparkStreamerFromKafka:
         self.sc.setLogLevel("ERROR")
 
         self.kafka_config = helpers.parse_config(kafka_configfile)
-        self.kafka_config = helpers.replace_envvars_with_vals(self.kafka_config)
         self.schema       = helpers.parse_config(schema_configfile)
 
         self.initializeStream(start_offset)

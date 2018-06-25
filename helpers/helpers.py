@@ -9,8 +9,8 @@ from datetime import datetime
 def determine_time_slot(time):
     """
     determines time slot of the day based on given datetime
-    :type time: str
-    :rtype : int
+    :type time: str     string containing datetime "yyyy-mm-dd hh:mm:ss"
+    :rtype    : int     id of the 10-minute slot, 0 <= id < 144
     """
     dt = datetime.strptime(time, "%Y-%m-%d %H:%M:%S")
     return (dt.hour*60+dt.minute)/10
@@ -20,24 +20,17 @@ def determine_time_slot(time):
 def determine_block_ids(lon, lat):
     """
     calculates ids of blocks/subblocks based on given coordinates
-    :type lon: float
-    :type lat: float
-    :rtype : [(int, int), (int, int)]
+    :type lon: float            longitude
+    :type lat: float            latitude
+    :rtype : [(int, int),       list of two tuples which contain x and y ids
+              (int, int)]       of large and small block, respectively
     """
-    # if not in Manhattan
-    #if abs(lon+74) > 0.24 or abs(lat-40.75) > 0.24:
-    #    return -1, -1
-
     # size of large block is 0.005   degree lat/lon
     # size of small block is 0.00025 degree lat/lon
     corner = [(lon+74.25), (lat-40.5)]
 
     small_block_id = map(lambda x: int(math.floor(x/0.00025)), corner)
     large_block_id = map(lambda x: x/20, small_block_id)
-    #small_block_id = map(lambda x: x%20, small_block_id)
-
-    #large_block_id = large_block_id[0]*100 + large_block_id[1]
-    #small_block_id = small_block_id[0]*20  + small_block_id[1]
 
     return tuple(large_block_id), tuple(small_block_id)
 
@@ -46,49 +39,31 @@ def determine_block_ids(lon, lat):
 def get_neighboring_blocks(bl):
     """
     returns list of block_id for blocks that are adjacent to block bl
-    :type bl: int
-    :rtype : list[(int, int)]
+    :type bl: (int, int)        x and y ids for large block bl
+    :rtype  : list[(int, int)]  list of x and y ids for large blocks surrounding block bl
     """
     return [(bl[0]+i, bl[1]+j) for i in [-1,0,+1] for j in [-1,0,+1] if not (i == 0 and j == 0)]
 
 
 
-def determine_subblock_lonlat(subblock_id):
+def determine_subblock_lonlat(subblock):
     """
     calculates coordinates of the center of a subblock based on block_id and subblock_id
-    :type block_id: int
-    :type subblock_id: int
-    :rtype : (float, float)
+    :type subblock: (int, int)       x and y ids of small block subblock
+    :rtype        : (float, float)   longitude and latitude of the small block center
     """
     corner = (-74.25, 40.5)
-    return [corner[i]+(subblock_id[i]+0.5)*0.00025 for i in range(2)]
-
-
-
-# def haversine(lon1, lat1, lon2, lat2):
-#     """
-#     Calculate the great circle distance between two points
-#     on the earth (specified in decimal degrees)
-#     """
-#     # convert decimal degrees to radians
-#     lon1, lat1, lon2, lat2 = map(radians, [lon1, lat1, lon2, lat2])
-#
-#     # haversine formula
-#     dlon = lon2 - lon1
-#     dlat = lat2 - lat1
-#     a = sin(dlat/2)**2 + cos(lat1) * cos(lat2) * sin(dlon/2)**2
-#     c = 2 * asin(sqrt(a))
-#     r = 6371 # Radius of earth in kilometers. Use 3956 for miles
-#     return c * r * 1000 # in meters
+    return [corner[i]+(subblock[i]+0.5)*0.00025 for i in range(2)]
 
 
 
 def map_schema(line, schema):
     """
     cleans the message msg, leaving only the fields given by schema
-    :type line: str
-    :type schema: dict
-    :rtype : dict
+    returns None if unable to parse
+    :type line  : str       message to parse
+    :type schema: dict      schema that contains the fields to filter
+    :rtype      : dict      message in the format {"field": "value"}
     """
     try:
         msg = line.split(schema["DELIMITER"])
@@ -101,10 +76,11 @@ def map_schema(line, schema):
 
 def add_block_fields(record):
     """
-    adds fields block_id (tuple), sub_block_id (tuple), block_id_x (int), block_id_y (int)
+    adds fields block_id ((int, int)), sub_block_id ((int, int)), block_id_x (int), block_id_y (int)
     to the record based on existing fields longitude and latitude
-    :type record: dict
-    :rtype : dict
+    returns None if unable to add fields
+    :type record: dict      record into which insert new fields
+    :rtype      : dict      record with inserted new fields
     """
     try:
         lon, lat = [float(record[field]) for field in ["longitude", "latitude"]]
@@ -118,25 +94,25 @@ def add_block_fields(record):
 
 def add_time_slot_field(record):
     """
-    adds field time_slot(int) to the record based on existing field datetime
-    :type record: dict
-    :rtype : dict
+    adds field time_slot (int) to the record based on existing field datetime
+    returns None if unable to add field
+    :type record: dict      record into which insert new field
+    :rtype      : dict      record with inserted new field
     """
     try:
         record["time_slot"] = determine_time_slot(record["datetime"])
     except:
         return
-    #if record["time_slot"] < 0:
-    #    return
     return dict(record)
 
 
 
 def check_passengers(record):
     """
-    converts field passengers from str to int and check if its value is >= 1
-    :type record: dict
-    :rtype : dict
+    converts field passengers from str to int
+    returns None if number of passengers is < 1 or if unable to convert field
+    :type record: dict      record where to convert field
+    :rtype      : dict      record with converted field
     """
     try:
         record["passengers"] = int(record["passengers"])
@@ -151,8 +127,8 @@ def check_passengers(record):
 def parse_config(configfile):
     """
     reads configs saved as json record in configuration file and returns them
-    :type configfile: str
-    :rtype : dict
+    :type configfile: str       path to config file
+    :rtype          : dict      configs
     """
     conf = json.load(open(configfile, "r"))
     return replace_envvars_with_vals(conf)
@@ -162,26 +138,26 @@ def parse_config(configfile):
 def get_psql_config(psql_configfile):
     """
     returns configurations of the PostgreSQL table
-    :type psql_configfile: str
-    :rtype : dict
+    adds field url from the fields urlheader, host, port and database
+    :type psql_configfile: str      path to config file
+    :rtype               : dict     configs
     """
     config = parse_config(psql_configfile)
-    
+
     config["url"] = "{}{}:{}/{}".format(config["urlheader"],
                                         config["host"],
                                         config["port"],
                                         config["database"])
-
     return config
 
 
 
 def replace_envvars_with_vals(dic):
     """
-    for a dictionary dic which contains values of the form "$varname",
+    for a dictionary dic which may contain values of the form "$varname" or "$varname1:port,$varname2:port,...",
     replaces such values with the values of corresponding environmental variables
-    :type dic: dict
-    :rtype : dict
+    :type dic: dict     dictionary where to parse environmental variables
+    :rtype   : dict     dictionary with parsed environmental variables
     """
     for el in dic.keys():
         val = dic[el]
@@ -189,7 +165,6 @@ def replace_envvars_with_vals(dic):
             val = replace_envvars_with_vals(val)
         else:
             if type(val) in [unicode, str] and len(val) > 0 and val[0] == '$':
-                #dic[el] = os.getenv(val[1:])
                 command = "echo {}".format(val)
                 dic[el] = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE).stdout.read().strip()
     return dic

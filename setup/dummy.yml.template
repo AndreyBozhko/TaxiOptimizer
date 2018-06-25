@@ -1,0 +1,10 @@
+purchase_type: on_demand
+subnet_id: <id>
+num_instances: 1
+key_name: <keypair>
+security_group_ids: <group>
+instance_type: m4.large
+tag_name: <cluster>
+vol_size: 100
+role: master/worker
+use_eips: true

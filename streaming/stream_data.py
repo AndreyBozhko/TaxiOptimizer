@@ -12,5 +12,5 @@ if __name__ == '__main__':
 
     kafka_configfile, schema_configfile, psql_configfile = sys.argv[1:4]
 
-    streamer = TaxiStreamer(kafka_configfile, schema_configfile, psql_configfile)
+    streamer = TaxiStreamer(kafka_configfile, schema_configfile, psql_configfile, 1, 0)
     streamer.run()

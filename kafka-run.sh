@@ -13,7 +13,7 @@ BROKERS_IP=`grep BROKERS $KAFKACONFIGFILE | sed s/".*_IP"//g | sed s/[" "\"]//g 
 
 convert () {
 
-        ans=""    
+        ans=""
         for item in `echo $1 | sed s/","/" "/g` ; do
 
                 left=`echo $item | sed s/":.*"//g`
@@ -40,7 +40,7 @@ case $1 in
 
   --produce)
 
-    python kafka/producer.py $KAFKACONFIGFILE $SCHEMAFILE $S3CONFIGFILE &
+    python kafka/produce_messages.py $KAFKACONFIGFILE $SCHEMAFILE $S3CONFIGFILE &
     ;;
 
   --describe)

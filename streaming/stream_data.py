@@ -4,6 +4,8 @@ from streamers import TaxiStreamer
 
 
 
+### main method that executes streaming job ###
+
 if __name__ == '__main__':
 
     if len(sys.argv) != 4:

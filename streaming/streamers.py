@@ -10,10 +10,18 @@ from pyspark.streaming.kafka import KafkaUtils, TopicAndPartition
 ####################################################################
 
 class SparkStreamerFromKafka:
+    """
+    class that streams messages from Kafka topic and cleans up the message content
+    """
 
     def __init__(self, kafka_configfile, schema_configfile, batch_interval, start_offset):
         """
-        constructor
+        class constructor that initializes the instance according to the configurations
+        of Kafka (brokers, topic, offsets), data schema and batch interval for streaming
+        :type kafka_configfile:  str        path to s3 config file
+        :type schema_configfile: str        path to schema config file
+        :type batch_interval:    float      time window for a single batch (in seconds)
+        :type start_offset:      int        offset from which to read from partitions of Kafka topic
         """
         self.sc  = pyspark.SparkContext().getOrCreate()
         self.scc = pyspark.streaming.StreamingContext(self.sc, batch_interval)
@@ -23,12 +31,13 @@ class SparkStreamerFromKafka:
         self.kafka_config = helpers.parse_config(kafka_configfile)
         self.schema       = helpers.parse_config(schema_configfile)
 
-        self.initializeStream(start_offset)
+        self.initialize_stream(start_offset)
 
 
-    def initializeStream(self, start_offset):
+    def initialize_stream(self, start_offset):
         """
-        initializes stream
+        initializes stream from Kafka topic
+        :type start_offset: int     offset from which to read from partitions of Kafka topic
         """
         topic, n = self.kafka_config["TOPIC"], self.kafka_config["PARTITIONS"]
         try:
@@ -41,7 +50,7 @@ class SparkStreamerFromKafka:
                                             fromOffsets=fromOffsets)
 
 
-    def processStream(self):
+    def process_stream(self):
         """
         cleans the streamed data
         """
@@ -56,7 +65,7 @@ class SparkStreamerFromKafka:
         """
         starts streaming
         """
-        self.processStream()
+        self.process_stream()
         self.scc.start()
         self.scc.awaitTermination()
 
@@ -64,66 +73,83 @@ class SparkStreamerFromKafka:
 ####################################################################
 
 class TaxiStreamer(SparkStreamerFromKafka):
+    """
+    class that provides each taxi driver with the top-n pickup spots
+    """
 
     def __init__(self, kafka_configfile, schema_configfile, psql_configfile, batch_interval=1, start_offset=None):
         """
-        constructor
+        class constructor that initializes the instance according to the configurations
+        of Kafka (brokers, topic, offsets), PostgreSQL database, data schema and batch interval for streaming
+        :type kafka_configfile:  str        path to s3 config file
+        :type schema_configfile: str        path to schema config file
+        :type psql_configfile:   str        path to psql config file
+        :type batch_interval:    float      time window for a single batch (in seconds)
+        :type start_offset:      int        offset from which to read from partitions of Kafka topic
         """
         SparkStreamerFromKafka.__init__(self, kafka_configfile, schema_configfile, batch_interval, start_offset)
         self.psql_config = helpers.get_psql_config(psql_configfile)
+        self.load_batch_data()
 
 
     def load_batch_data(self):
         """
-        reads result of batch transformation from PostgreSQL database
+        reads result of batch transformation from PostgreSQL database and caches it
         """
         sqlContext = pyspark.sql.SQLContext(self.sc)
-        return (sqlContext.read.jdbc(url      =self.psql_config["url"],
+        self.historic_data = (sqlContext.read.jdbc(url      =self.psql_config["url"],
                                     table     =self.psql_config["dbtable"],
                                     properties=self.psql_config["properties"])
-                               .rdd.map(lambda x: x.asDict())
+                               .rdd
+                               .map(lambda x: x.asDict())
                                .map(lambda x: ((x["time_slot"], x["block_idx"], x["block_idy"]),
                                                (x["longitude"], x["latitude"], x["passengers"]))))
 
+        self.historic_data.persist(pyspark.StorageLevel.MEMORY_ONLY)
 
-    def processStream(self):
+
+    def process_each_rdd(self, time, rdd):
         """
-        processes stream
+        for every record in rdd, queries database historic_data for the answer
+        :type time: datetime     timestamp for each RDD batch
+        :type rdd:  RDD          Spark RDD from the stream
         """
-        sql_data = self.load_batch_data()
-        sql_data.persist(pyspark.StorageLevel.MEMORY_ONLY)
 
-        SparkStreamerFromKafka.processStream(self)
-
-
-        def process(time, rdd):
-            global iPass
+        def func(x):
             try:
-                iPass += 1
+                return map(lambda el: (el, x[1]), rdd_bcast.value[x[0]])
             except:
-                iPass = 1
+                return [None]
 
-            print("========= Microbatch Number: {0} - {1} =========".format(iPass, str(time)))
+        global iPass
+        try:
+            iPass += 1
+        except:
+            iPass = 1
 
-            try:
-                rdd_bcast = (rdd.map(lambda x: ((x["time_slot"], x["block_id_x"], x["block_id_y"]),
-                                                (x["vehicle_id"], x["longitude"], x["latitude"])))
-                                .groupByKey().collect())
-                if len(rdd_bcast) == 0:
-                    return
+        print("========= Microbatch Number: {0} - {1} =========".format(iPass, str(time)))
 
-                rdd_bcast = self.sc.broadcast({x[0]:x[1] for x in rdd_bcast})
+        try:
+            rdd_bcast = (rdd.map(lambda x: ((x["time_slot"], x["block_id_x"], x["block_id_y"]),
+                                            (x["vehicle_id"], x["longitude"], x["latitude"])))
+                            .groupByKey().collect())
+            if len(rdd_bcast) == 0:
+                return
 
-                def func(x):
-                    try:
-                        return map(lambda el: (el, x[1]), rdd_bcast.value[x[0]])
-                    except:
-                        return [None]
+            rdd_bcast = self.sc.broadcast({x[0]:x[1] for x in rdd_bcast})
 
-                resDF = sql_data.flatMap(func).filter(lambda x: x is not None)
-                print resDF.count()
+            resDF = self.historic_data.flatMap(func).filter(lambda x: x is not None)
+            print resDF.count()
 
-            except:
-                pass
+        except:
+            pass
 
+
+    def process_stream(self):
+        """
+        processes each RDD in the stream
+        """
+        SparkStreamerFromKafka.process_stream(self)
+
+        process = self.process_each_rdd
         self.dataStream.foreachRDD(process)

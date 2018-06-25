@@ -4,6 +4,8 @@ from batch_transformers import TaxiBatchTransformer
 
 
 
+### main method that executes batch job ###
+
 if __name__ == '__main__':
 
     if len(sys.argv) != 4:

@@ -12,10 +12,10 @@ from datetime import datetime, timedelta
 def transform(line, i):
     """
     generates data by adding some random noise to historical data
-    !!! takes 6 min to generate month of data (on 11 m4.large instances) !!!
-    :type line: str
-    :type i: int
-    :rtype : str
+    !!! takes 6 min to generate month of data (on 10 m4.large instances) !!!
+    :type line: str     line to transform
+    :type    i: int     number that gives the year shift (year -> year - 7*i)
+    :rtype    : str     transformed line
     """
     #i1, i3, i5, i7 = 5, 7, 10, 12
     i1, i3, i5, i7 = 1, 3, 5, 7
@@ -50,6 +50,8 @@ def transform(line, i):
     return s[:]
 
 
+
+### main method that generates two more raw data files for each input file ###
 
 if __name__ == '__main__':
 

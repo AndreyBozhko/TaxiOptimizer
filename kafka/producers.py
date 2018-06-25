@@ -11,7 +11,7 @@ from kafka.producer import KafkaProducer
 
 ####################################################################
 
-class Producer(object):
+class MyKafkaProducer(object):
     """
     class that implements Kafka producers that ingest data from S3 bucket
     """
@@ -20,11 +20,11 @@ class Producer(object):
         """
         class constructor that initializes the instance according to the configurations
         of the S3 bucket and Kafka
-        :type kafka_configfile: str
-        :type s3_configfile: str
+        :type kafka_configfile: str     path to kafka config file
+        :type s3_configfile:    str     path to S3 config file
         """
         self.kafka_config = helpers.parse_config(kafka_configfile)
-        
+
         self.schema = helpers.parse_config(schema_file)
         self.s3_config = helpers.parse_config(s3_configfile)
 
@@ -34,12 +34,14 @@ class Producer(object):
     def get_key(self, msg):
         """
         produces key for message to Kafka topic
-        :type msg: dict
-        :rtype : int
+        :type msg: dict     message for which to generate the key
+        :rtype   : str      key that has to be of type bytes
         """
         msgwithkey = helpers.add_block_fields(msg)
+        if msgwithkey is None:
+            return
         x, y = msgwithkey["block_id_x"], msgwithkey["block_id_y"]
-        return (x*137+y)%77703
+        return str((x*137+y)%77703).encode()
 
 
     def produce_msgs(self):
@@ -61,18 +63,6 @@ class Producer(object):
             self.producer.send(self.kafka_config["TOPIC"],
                                value=json.dumps(msg),
                                key=self.get_key(msg))
-            time.sleep(0.01)
+
             msg_cnt += 1
-
-
-
-if __name__ == "__main__":
-
-    if len(sys.argv) != 4:
-        sys.stderr("Usage: producer.py <kafkaconfigfile> <schemafile> <s3configfile> \n")
-        sys.exit(-1)
-
-    kafka_configfile, schema_file, s3_configfile = sys.argv[1:4]
-
-    prod = Producer(kafka_configfile, schema_file, s3_configfile)
-    prod.produce_msgs()
+            time.sleep(0.01)

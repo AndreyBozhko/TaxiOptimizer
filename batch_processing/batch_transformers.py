@@ -19,9 +19,9 @@ class BatchTransformer:
         """
         class constructor that initializes the instance according to the configurations
         of the S3 bucket, raw data and PostgreSQL table
-        :type s3_configfile: str
-        :type schema_configfile: str
-        :type psql_configfile: str
+        :type s3_configfile:     str        path to s3 config file
+        :type schema_configfile: str        path to schema config file
+        :type psql_configfile:   str        path to psql config file 
         """
         self.s3_config   = helpers.parse_config(s3_configfile)
         self.schema      = helpers.parse_config(schema_configfile)
@@ -41,20 +41,6 @@ class BatchTransformer:
         self.data = self.sc.textFile(filenames)
 
 
-    # def read_from_s3_boto(self):
-    #     """
-    #     reads files from s3 bucket defined by s3_configfile and creates Spark RDD
-    #     """
-    #     from boto.s3.connection import S3Connection
-    #     import os
-    #
-    #     conn = S3Connection(os.getenv("AWS_ACCESS_KEY_ID"), os.getenv("AWS_SECRET_ACCESS_KEY"))
-    #     bucket = conn.get_bucket(self.s3_config["BUCKET"])
-    #     keys = bucket.list(prefix=prefix)
-    #     # Get a Spark context and use it to parallelize the keys
-    #     self.data = self.sc.parallelize(keys).flatMap(helpers.map_func)
-
-
     def save_to_postgresql(self):
         """
         saves result of batch transformation to PostgreSQL database
@@ -70,7 +56,7 @@ class BatchTransformer:
 
     def spark_transform(self):
         """
-        transforms Spark RDD with raw data into RDD with cleaned data
+        transforms Spark RDD with raw data into RDD with cleaned data;
         adds block_id, sub_block_id and time_slot fields
         """
         schema = self.sc.broadcast(self.schema)
@@ -84,7 +70,7 @@ class BatchTransformer:
 
     def run(self):
         """
-        executes the read from s3, transform by spark and write to postgresql sequence
+        executes the read from S3, transform by Spark and write to PostgreSQL database sequence
         """
         self.read_from_s3()
         self.spark_transform()
@@ -107,6 +93,7 @@ class TaxiBatchTransformer(BatchTransformer):
         BatchTransformer.spark_transform(self)
 
         n = self.psql_config["top_n_to_save"]
+
         # calculation of top-n spots for each block and time slot
         self.data = (self.data
                         .map(lambda x: ( (x["block_id"], x["time_slot"], x["sub_block_id"]), x["passengers"] ))
@@ -114,8 +101,8 @@ class TaxiBatchTransformer(BatchTransformer):
                         .map(lambda x: ( (x[0][0], x[0][1]), [(x[0][2], x[1])] ))
                         .reduceByKey(lambda x,y: x+y)
                         .mapValues(lambda vals: sorted(vals, key=lambda x: -x[1])[:n])
-                        .map(lambda x: {"block_id":       x[0][0],
-                                        "time_slot":      x[0][1],
+                        .map(lambda x: {"block_id":          x[0][0],
+                                        "time_slot":         x[0][1],
                                         "subblocks_psgcnt":  x[1]}))
 
 

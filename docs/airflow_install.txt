@@ -1,0 +1,10 @@
+# Execute to install Airflow
+export AIRFLOW_HOME=~/airflow
+pip install apache-airflow
+
+# Add under [core] in $AIRFLOW_HOME/airflow.cfg:
+"default_timezone = est"
+
+# Launch webserver and scheduler:
+nohup airflow webserver -p 8081 &
+nohup airflow scheduler &

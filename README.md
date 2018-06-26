@@ -1,8 +1,8 @@
 # TaxiOptimizer
-***find fares and avoid competition***
+> ***find fares and avoid competition***
 
 This is a project I completed during the Insight Data Engineering program (New York, Summer 2018).
-Visit ~~[taxioptimizer.com](taxioptimizer.com)~~ to see it in action.
+Visit ~~[taxioptimizer.com](http://taxioptimizer.com)~~ to see it in action.
 
 ***
 
@@ -19,6 +19,11 @@ Pipeline
 
 ![alt text](https://github.com/AndreyBozhko/TaxiOptimizer/blob/master/docs/pipeline.jpg "TaxiOptimizer Pipeline")
 
+***Batch Job***: historical taxi trip data are ingested from S3 bucket into Spark, which computes top-5 pickup locations within every cell of the grid for every 10-minute interval, and saves the result into the PostgreSQL database.
+> This process is automated with the help of the Airflow scheduler.
+
+***Streaming Job***: real-time taxi location data are streamed by Kafka into Spark Streaming, where the stream is joined with the results of the batch job to produce the answers for every entry in the stream.
+
 ### Data Sources
   1. Historical: [NYC TLC Taxi Trip data](http://www.nyc.gov/html/tlc/html/about/trip_record_data.shtml), for period from Jan 2009 to Jun 2016 (~550 GB in total),
 
@@ -27,7 +32,7 @@ Pipeline
 
 ### Environment Setup
 
-Install and configure [AWS CLI](https://aws.amazon.com/cli/) and [Pegasus](https://github.com/InsightDataScience/pegasus), and clone this repository using  
+Install and configure [AWS CLI](https://aws.amazon.com/cli/) and [Pegasus](https://github.com/InsightDataScience/pegasus) on your local machine, and clone this repository using
 `git clone https://github.com/AndreyBozhko/TaxiOptimizer`.
 #### CLUSTER STRUCTURE:
 
@@ -40,11 +45,13 @@ To reproduce my environment, 11 m4.large AWS EC2 instances are needed:
 
 To create the clusters, put the appropriate `master.yml` and `workers.yml` files in each `cluster_setup/<clustername>` folder (following the template in `cluster_setup/dummy.yml.template`), and run the `cluster_setup/create-clusters.sh` script.
 
-After the EC2 instances are up, run `cluster_setup/<clustername>/install.sh` to install and configure the tools for each cluster, and also install required Python packages via `???` (also download jars).
+After the EC2 instances are up, run `cluster_setup/<clustername>/install.sh` to install and configure the tools for each cluster.
 
 Additionally, execute `misc_scripts/copy_allnodesdns_to_masters.sh` to provide every master node with the addresses of every node from other clusters, and `misc_scripts/copy_idrsapub_to_workers.sh` to allow access to all workers via `peg ssh <clustername> <node>` command.
 
-    After that, any node's address from cluster some-cluster-name will be saved as the environment variable SOME_CLUSTER_NAME_$i as on every master, where $i = 0, 1, 2, ...
+> After that, any node's address from cluster some-cluster-name will be saved as the environment variable SOME_CLUSTER_NAME_$i as on every master, where $i = 0, 1, 2, ...*
+
+Lastly, run `misc_scripts/install_on_masters.sh` to clone **TaxiOptimizer** to the clusters, download necessary .jar files and install required Python packages.
 
 ##### Airflow setup
 
@@ -56,13 +63,16 @@ The PostgreSQL database sits on the master node of *spark-batch-cluster*.
 Follow the instructions in `docs/postgres_install.txt` to download and setup access to it.
 
 ##### Configurations
-Configuration settings for Kafka, PostgreSQL, AWS S3 bucket, as well as the schemas for the data are stored in the respective files in `config/` folder. Replace the settings in `config/s3config.ini` with the names and paths for your S3 bucket.
+Configuration settings for Kafka, PostgreSQL, AWS S3 bucket, as well as the schemas for the data are stored in the respective files in `config/` folder.
+> Replace the settings in `config/s3config.ini` with the names and paths for your S3 bucket.
 
+
+## Running TaxiOptimizer
 
 ### Schedule the Batch Job
 Running `airflow/schedule.sh` on the master of *spark-batch-cluster* will start the batch job immediately, and will execute them every 24 hours.
 
-### Starting the Streaming Job
+### Start the Streaming Job
 Execute `./spark-run.sh --stream` on the master of *spark-stream-cluster* (preferably after the batch job has run for the first time).
 Once it is running, execute `./kafka-run --produce` on the master of *kafka-cluster* to start streaming the real-time taxi location data.
 
@@ -71,4 +81,4 @@ Once it is running, execute `./kafka-run --produce` on the master of *kafka-clus
 
 
 ### Testing
-    The folder `test/` contains unit tests for various project components.
+The folder `test/` contains unit tests for various project components.

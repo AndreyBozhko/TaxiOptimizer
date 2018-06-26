@@ -17,7 +17,7 @@ I define the top-5 pickup spots within each neighborhood for any given 10-minute
 Pipeline
 -----------------
 
-![alt text](https://github.com/AndreyBozhko/TaxiOptimizer/docs/pipeline.jpg "TaxiOptimizer Pipeline")
+![alt text](https://github.com/AndreyBozhko/TaxiOptimizer/blob/master/docs/pipeline.jpg "TaxiOptimizer Pipeline")
 
 ### Data Sources
   1. Historical: [NYC TLC Taxi Trip data](http://www.nyc.gov/html/tlc/html/about/trip_record_data.shtml), for period from Jan 2009 to Jun 2016 (~550 GB in total),

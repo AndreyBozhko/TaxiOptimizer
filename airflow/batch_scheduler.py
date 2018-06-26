@@ -7,7 +7,7 @@ from datetime import datetime, timedelta
 schedule_interval = timedelta(days=1)
 
 default_args = {
-    'owner': 'airflow',
+    'owner': 'AndreyBozhko',
     'depends_on_past': False,
     'start_date': datetime.now() - schedule_interval,
     'email': ['andybozhko@gmail.com'],

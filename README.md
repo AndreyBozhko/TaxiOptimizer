@@ -34,6 +34,10 @@ Pipeline
 
 Install and configure [AWS CLI](https://aws.amazon.com/cli/) and [Pegasus](https://github.com/InsightDataScience/pegasus) on your local machine, and clone this repository using
 `git clone https://github.com/AndreyBozhko/TaxiOptimizer`.
+
+> AWS Tip: Add your local IP to your AWS VPC inbound rules
+> Pegasus Tip: ???
+
 #### CLUSTER STRUCTURE:
 
 To reproduce my environment, 11 m4.large AWS EC2 instances are needed:
@@ -43,9 +47,7 @@ To reproduce my environment, 11 m4.large AWS EC2 instances are needed:
 - (3 nodes) Kafka Cluster
 - Flask Node
 
-To create the clusters, put the appropriate `master.yml` and `workers.yml` files in each `cluster_setup/<clustername>` folder (following the template in `cluster_setup/dummy.yml.template`), and run the `cluster_setup/create-clusters.sh` script.
-
-After the EC2 instances are up, run `cluster_setup/<clustername>/install.sh` to install and configure the tools for each cluster.
+To create the clusters, put the appropriate `master.yml` and `workers.yml` files in each `cluster_setup/<clustername>` folder (following the template in `cluster_setup/dummy.yml.template`), list all the necesary software in `cluster_setup/<clustername>/install.sh`, and run the `cluster_setup/create-clusters.sh` script.
 
 Additionally, execute `misc_scripts/copy_allnodesdns_to_masters.sh` to provide every master node with the addresses of every node from other clusters, and `misc_scripts/copy_idrsapub_to_workers.sh` to allow access to all workers via `peg ssh <clustername> <node>` command.
 

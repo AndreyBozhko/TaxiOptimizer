@@ -1,6 +1,7 @@
 ### Required modules ###
 ### Python 2.7.x ###
 boto3
+flask
 kafka-python
 lazyreader
 mock

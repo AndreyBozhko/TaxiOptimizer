@@ -2,7 +2,7 @@
 
 line=`cat ~/.ssh/id_rsa.pub`
 
-clusters=kafka-cluster,spark-batch-cluster,spark-stream-cluster
+clusters=kafka-cluster,spark-batch-cluster,spark-stream-cluster,flask-node
 
 
 clusters=`echo $clusters | sed s/","/" "/g`

@@ -76,7 +76,11 @@ Running `airflow/schedule.sh` on the master of *spark-batch-cluster* will start 
 
 ### Start the Streaming Job
 Execute `./spark-run.sh --stream` on the master of *spark-stream-cluster* (preferably after the batch job has run for the first time).
-Once it is running, execute `./kafka-run --produce` on the master of *kafka-cluster* to start streaming the real-time taxi location data.
+
+### Start streaming messages with Kafka
+Execute `./kafka-run --produce` on the master of *kafka-cluster* to start streaming the real-time taxi location data.
+If the topic does not exist, run `./kafka-run --create`. To describe existing topic, run `./kafka-run --describe`.
+It is also possible to delete inactive topic using the option `--delete`, or view the messages in the topic with the option `--console-consume`.
 
 ### Flask
 ???

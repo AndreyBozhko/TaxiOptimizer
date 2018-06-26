@@ -2,6 +2,7 @@ import sys
 sys.path.append("./helpers/")
 
 import json
+import time
 import pyspark
 import helpers
 from pyspark.streaming.kafka import KafkaUtils, TopicAndPartition
@@ -45,9 +46,17 @@ class SparkStreamerFromKafka:
         except:
             fromOffsets = None
 
-        self.dataStream = KafkaUtils.createDirectStream(self.scc, [topic],
-                                            {"metadata.broker.list": self.kafka_config["BROKERS_IP"]},
-                                            fromOffsets=fromOffsets)
+        while True:
+            try:
+                self.dataStream = KafkaUtils.createDirectStream(self.scc, [topic],
+                                                {"metadata.broker.list": self.kafka_config["BROKERS_IP"]},
+                                                fromOffsets=fromOffsets)
+                break
+            except:
+                print "Cannot connect to Kafka topic {}, attempting again in 10 s".format(topic)
+                time.sleep(10)
+            finally:
+                print "Successfully connected to Kafka topic {}".format(topic)
 
 
     def process_stream(self):

@@ -50,12 +50,13 @@ class MyKafkaProducer(object):
         """
         msg_cnt = 0
 
-        s3 = boto3.client('s3')
-        obj = s3.get_object(Bucket=self.s3_config["BUCKET"],
-                            Key="{}/{}".format(self.s3_config["FOLDER"],
-                                               self.s3_config["STREAMING_FILE"]))
-
         while True:
+
+            s3 = boto3.client('s3')
+            obj = s3.get_object(Bucket=self.s3_config["BUCKET"],
+                                Key="{}/{}".format(self.s3_config["FOLDER"],
+                                                   self.s3_config["STREAMING_FILE"]))
+
             for line in lazyreader.lazyread(obj['Body'], delimiter='\n'):
 
                 message_info = line.strip()
@@ -66,4 +67,4 @@ class MyKafkaProducer(object):
                                    key=self.get_key(msg))
 
                 msg_cnt += 1
-                time.sleep(0.01)
+                time.sleep(0.001)

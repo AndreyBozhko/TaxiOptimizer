@@ -55,14 +55,15 @@ class MyKafkaProducer(object):
                             Key="{}/{}".format(self.s3_config["FOLDER"],
                                                self.s3_config["STREAMING_FILE"]))
 
-        for line in lazyreader.lazyread(obj['Body'], delimiter='\n'):
+        while True:
+            for line in lazyreader.lazyread(obj['Body'], delimiter='\n'):
 
-            message_info = line.strip()
-            msg = helpers.map_schema(message_info, self.schema)
+                message_info = line.strip()
+                msg = helpers.map_schema(message_info, self.schema)
 
-            self.producer.send(self.kafka_config["TOPIC"],
-                               value=json.dumps(msg),
-                               key=self.get_key(msg))
+                self.producer.send(self.kafka_config["TOPIC"],
+                                   value=json.dumps(msg),
+                                   key=self.get_key(msg))
 
-            msg_cnt += 1
-            time.sleep(0.01)
+                msg_cnt += 1
+                time.sleep(0.01)

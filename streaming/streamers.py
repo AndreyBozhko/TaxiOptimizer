@@ -5,6 +5,7 @@ import json
 import time
 import pyspark
 import helpers
+import numpy as np
 from pyspark.streaming.kafka import KafkaUtils, TopicAndPartition
 
 
@@ -65,7 +66,7 @@ class SparkStreamerFromKafka:
                                     .map(helpers.add_time_slot_field)
                                     .filter(lambda x: x is not None)
                                     .map(lambda x: ((x["time_slot"], x["block_id_x"], x["block_id_y"]),
-                                                    (x["vehicle_id"], x["longitude"], x["latitude"]))))
+                                                    (x["vehicle_id"], x["longitude"], x["latitude"], x["datetime"]))))
 
 
     def run(self):
@@ -123,7 +124,7 @@ class TaxiStreamer(SparkStreamerFromKafka):
         for tsl in range(parts):
             self.hdata[tsl] = historic_data.filter(lambda x: x[0][0]*parts/total==tsl)
             self.hdata[tsl].persist(pyspark.StorageLevel.MEMORY_ONLY_2)
-            print "loaded batch {} with {} rows".format(tsl+1, self.hdata[tsl].count())
+            print "loaded batch {}/{} with {} rows".format(tsl+1, parts, self.hdata[tsl].count())
 
         historic_data.unpersist()
 
@@ -135,15 +136,34 @@ class TaxiStreamer(SparkStreamerFromKafka):
         :type rdd:  RDD          Spark RDD from the stream
         """
 
-        def func(x):
+        def my_join(x):
             """
             joins the record from table with historical data with the records of the taxi drivers' locations
             on the key (time_slot, block_id_x, block_id_y)
+            schema for x: ((time_slot, block_idx, block_idy), (longitude, latitude, passengers))
             """
             try:
-                return map(lambda el: (el, x[1]), rdd_bcast.value[x[0]])
+                return map(lambda el: (  el[0][0],
+                                        (el[0][1], el[0][2]),
+                                     zip( x[1][0],  x[1][1]),
+                                        (el[1],     x[1][2])  ), rdd_bcast.value[x[0]])
             except:
                 return [None]
+
+        def select_customized_spots(x):
+            """
+            chooses no more than 3 pickup spots from top-n,
+            based on the total number of rides from that spot
+            and on the order in which the drivers send their location data
+            schema for x: (vehicle_id, (longitude, latitude), [list of spots (lon, lat)], (i, [list of passenger pickups]))
+            """
+            try:
+                length, total = len(x[3][1]), sum(x[3][1])
+                np.random.seed(4040 + x[3][0])
+                choices = np.random.choice(length, min(3, length), p=np.array(x[3][1])/float(total), replace=False)
+                return (x[0], x[1], [x[2][c] for c in choices])
+            except:
+                return (x[0], x[1], [])
 
 
         global iPass
@@ -152,25 +172,37 @@ class TaxiStreamer(SparkStreamerFromKafka):
         except:
             iPass = 1
 
-        print("========= Microbatch Number: {0} - {1} =========".format(iPass, str(time)))
+        print("========= RDD Batch Number: {0} - {1} =========".format(iPass, str(time)))
 
         try:
             parts, total = self.stream_config["BATCH_PARTS"], self.total
+
+            # calculate list of distinct time_slots in current RDD batch
             tsl_list = rdd.map(lambda x: x[0][0]*parts/total).distinct().collect()
 
-            rdd_bcast = rdd.groupByKey().collect()
+            # transform rdd and broadcast to workers
+            # rdd_bcast has the following schema
+            # rdd_bcast = {key: [list of value]}
+            # key = (time_slot, block_id_x, block_id_y)
+            # value = ((vehicle_id, longitude, latitude, datetime), i)
+            # i shows the order in which drivers were sending data from certain block for certain time_slot
+            rdd_bcast = (rdd.groupByKey()
+                            .mapValues(lambda x: sorted(x, key=lambda el: el[3]))
+                            .mapValues(lambda x: zip(x, xrange(len(x))))
+                            .collect())
             if len(rdd_bcast) == 0:
                 return
 
             rdd_bcast = self.sc.broadcast({x[0]:x[1] for x in rdd_bcast})
 
+            # join the batch dataset with rdd_bcast, filter None values,
+            # and from all the spot suggestions select specific for the driver to ensure no competition
             resDF = self.sc.union([(self.hdata[tsl]
-                                          .flatMap(func, preservesPartitioning=True)
-                                          .filter(lambda x: x is not None)) for tsl in tsl_list])
+                                          .flatMap(my_join, preservesPartitioning=True)
+                                          .filter(lambda x: x is not None)
+                                          .map(select_customized_spots)) for tsl in tsl_list])
+            # output data
             print resDF.count()
-
-            # resDF = self.sc.union([resDF, rdd.map(lambda x: ((x["vehicle_id"], x["longitude"], x["latitude"]), []))]).reduceByKey(lambda x,y: x+y)
-            # print resDF.count()
 
         except:
             pass
@@ -180,22 +212,7 @@ class TaxiStreamer(SparkStreamerFromKafka):
         """
         processes each RDD in the stream
         """
-        def updateFunc(new_values, current_sum):
-            if current_sum is not None:
-                last_sum = current_sum
-            else:
-                last_sum = 0
-            return sum(map(lambda x: x, new_values)) + last_sum
-
         SparkStreamerFromKafka.process_stream(self)
-
-        # Streaming analysis not implemented yet
-        #
-        # checkpoint = self.stream_configfile["CHECKPOINT"]
-        # self.ssc.checkpoint(checkpoint)
-        #
-        # self.dataStream = self.dataStream.map(lambda x: (x[0], 1)).updateStateByKey(updateFunc)
-        # self.dataStream.pprint(10)
 
         process = self.process_each_rdd
         self.dataStream.foreachRDD(process)

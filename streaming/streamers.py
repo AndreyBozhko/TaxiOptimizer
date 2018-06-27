@@ -202,6 +202,7 @@ class TaxiStreamer(SparkStreamerFromKafka):
                                           .filter(lambda x: x is not None)
                                           .map(select_customized_spots)) for tsl in tsl_list])
             # output data
+            # not actually implemented yet
             print resDF.count()
 
         except:

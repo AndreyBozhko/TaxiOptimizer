@@ -5,7 +5,6 @@ import sys
 sys.path.append("../helpers/")
 
 import os
-import errno
 import json
 
 import helpers
@@ -18,30 +17,47 @@ class TestHelpersMethods(unittest.TestCase):
     """
 
     def setUp(self):
+        """
+        initialization of test suites
+        """
         pass
+
 
 
     def tearDown(self):
+        """
+        cleanup after test suites
+        """
         pass
 
 
+
     def test_determine_time_slot(self):
+        # test on valid input
         time = "2008-05-13 15:26:35"
         ans  = 15*6+2
         self.assertEqual(ans,
                 helpers.determine_time_slot(time),
                 "time_slot is incorrect")
-
+        # test on invalid input, Exception expected
         time = "2008-05-13 15:62:35"
         self.assertRaises(ValueError,
                 lambda: helpers.determine_time_slot(time))
 
 
+
     def test_determine_block_ids(self):
-        pass
+        # test if correctly calculates block ids
+        lon, lat = -60.0008, 60.0008
+        ids = [(2849, 3900), (56996, 78003)]
+        self.assertItemsEqual(ids,
+                helpers.determine_block_ids(lon, lat),
+                'incorrect block ids returned')
+
 
 
     def test_get_neighboring_blocks(self):
+        # test on any given block
         block = (4, 5)
         neighbors = [(4, 6), (4, 4), (3, 6), (3, 5),
                      (3, 4), (5, 6), (5, 5), (5, 4)]
@@ -50,36 +66,71 @@ class TestHelpersMethods(unittest.TestCase):
                 "incorrect neighbors returned")
 
 
+
     def test_determine_subblock_lonlat(self):
-        pass
+        # test if correctly finds coordinates
+        subblock = (83745, 2304)
+        lonlat = [-53.313625, 41.076125]
+        self.assertItemsEqual(lonlat,
+                helpers.determine_subblock_lonlat(subblock),
+                'incorrect coordinates returned')
+
 
 
     def test_map_schema(self):
         schema = {"DELIMITER": ";", "FIELDS": {"field1": 3, "field2": 1}}
         line = ";".join(["a","b","c","d","e"])
         ans = {"field1": "d", "field2": "b"}
+        # test if schema parses
         self.assertEqual(ans,
                 helpers.map_schema(line, schema),
                 "incorrect schema produced")
+        # test if parsing fails because of missing fields
         self.assertIsNone(
                 helpers.map_schema(line[:3], schema),
                 "did not return None when fields are missing")
 
 
+
     def test_add_block_fields(self):
-        pass
+        # test if correctly adds all the block fields
+        dic = {"latitude": 60.0008, "longitude": -60.0008}
+        dic2 = dict(dic)
+        dic2["block_id"], dic2["sub_block_id"] = (2849, 3900), (56996, 78003)
+        dic2["block_id_x"], dic2["block_id_y"] = 2849, 3900
+        self.assertEqual(dic2,
+                helpers.add_block_fields(dic),
+                'did not insert correct block ids')
+        # test if returns None if unable to add
+        del dic["longitude"]
+        self.assertIsNone(helpers.add_block_fields(dic),
+                'did not return None when fields are missing')
+
 
 
     def test_add_time_slot_field(self):
-        pass
+        # test if correctly adds time_slot
+        dic = {"datetime": "2020-07-23 06:23:15"}
+        dic2 = dict(dic)
+        dic2["time_slot"] = 38
+        self.assertEqual(dic2,
+                helpers.add_time_slot_field(dic),
+                'did not insert correct time_slot')
+        # test if returns None if unable to add
+        del dic2["datetime"]
+        self.assertIsNone(helpers.add_time_slot_field(dic2),
+                'did not return None')
+
 
 
     def test_check_passengers(self):
+        # test on valid input
         d1 = {"passengers": "3"}
         self.assertEqual(3,
                 helpers.check_passengers(d1)["passengers"],
                 "incorrect number of passengers returned")
-
+        # test for < 1 passengers, non-int passengers and absence of field passenger
+        # None expected
         d2 = {"passengers": "0"}
         d3 = {"passengers": "qwerty"}
         d4 = {"somefield": "5"}
@@ -89,7 +140,9 @@ class TestHelpersMethods(unittest.TestCase):
                     "did not return None for input {}".format(d))
 
 
+
     def test_parse_config(self):
+        # test if correctly parses the config file
         conf = {"field1": "val1",
                 "field2": {"subfield1": 2, "subfield2": "3"}}
 
@@ -101,11 +154,24 @@ class TestHelpersMethods(unittest.TestCase):
                     "fail to properly read config from file")
 
 
+
     def test_get_psql_config(self):
-        pass
+        # test if correctly parses psql config and adds url field
+        conf = {"urlheader": "val1",
+                "port": "156", "host": "somehost1", "database": "DB"}
+        conf2 = dict(conf)
+        conf2["url"] = "val1somehost1:156/DB"
+        with patch("__builtin__.open",
+                   mock_open(read_data=json.dumps(conf))) as mock_file:
+
+            self.assertDictEqual(conf2,
+                    helpers.get_psql_config(mock_file),
+                    "fail to properly read config from file")
+
 
 
     def test_replace_envvars_with_vals(self):
+        # test if correctly parses environmental variables
         dic1 = {"field1": "$TESTENVVAR:15,$TESTENVVAR",
                 "field2": {"sf1": 1, "sf2": "$TESTENVVAR"}}
         dic2 = {"field1": "test123:15,test123",

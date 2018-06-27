@@ -50,7 +50,7 @@ def determine_subblock_lonlat(subblock):
     """
     calculates coordinates of the center of a subblock based on block_id and subblock_id
     :type subblock: (int, int)       x and y ids of small block subblock
-    :rtype        : (float, float)   longitude and latitude of the small block center
+    :rtype        : [float, float]   longitude and latitude of the small block center
     """
     corner = (-74.25, 40.5)
     return [corner[i]+(subblock[i]+0.5)*0.00025 for i in range(2)]

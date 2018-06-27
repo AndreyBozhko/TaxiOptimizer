@@ -3,6 +3,7 @@
 S3CONFIGFILE=$PWD/config/s3bucket.ini
 SCHEMAFILE1=$PWD/config/schema_for_raw_data.ini
 SCHEMAFILE2=$PWD/config/schema_for_streaming.ini
+STREAMCONFIGFILE=$PWD/config/stream.ini
 PSQLCONFIGFILE=$PWD/config/postgresql.ini
 KAFKACONFIGFILE=$PWD/config/kafka.ini
 
@@ -32,7 +33,7 @@ case $1 in
                  --py-files $AUX_FILES \
                  --executor-memory 4G \
                  streaming/stream_data.py \
-                 $KAFKACONFIGFILE $SCHEMAFILE2 $PSQLCONFIGFILE
+                 $KAFKACONFIGFILE $SCHEMAFILE2 $STREAMCONFIGFILE $PSQLCONFIGFILE
     ;;
 
   *)

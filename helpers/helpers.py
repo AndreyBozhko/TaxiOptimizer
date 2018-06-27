@@ -154,7 +154,7 @@ def get_psql_config(psql_configfile):
 
 def replace_envvars_with_vals(dic):
     """
-    for a dictionary dic which may contain values of the form "$varname" or "$varname1:port,$varname2:port,...",
+    for a dictionary dic which may contain values of the form "$varname",
     replaces such values with the values of corresponding environmental variables
     :type dic: dict     dictionary where to parse environmental variables
     :rtype   : dict     dictionary with parsed environmental variables
@@ -164,7 +164,7 @@ def replace_envvars_with_vals(dic):
         if type(val) is dict:
             val = replace_envvars_with_vals(val)
         else:
-            if type(val) in [unicode, str] and len(val) > 0 and val[0] == '$':
+            if type(val) in [unicode, str] and len(val) > 0 and '$' in val:
                 command = "echo {}".format(val)
                 dic[el] = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE).stdout.read().strip()
     return dic

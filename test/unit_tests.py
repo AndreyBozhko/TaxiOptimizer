@@ -155,21 +155,6 @@ class TestHelpersMethods(unittest.TestCase):
 
 
 
-    def test_get_psql_config(self):
-        # test if correctly parses psql config and adds url field
-        conf = {"urlheader": "val1",
-                "port": "156", "host": "somehost1", "database": "DB"}
-        conf2 = dict(conf)
-        conf2["url"] = "val1somehost1:156/DB"
-        with patch("__builtin__.open",
-                   mock_open(read_data=json.dumps(conf))) as mock_file:
-
-            self.assertDictEqual(conf2,
-                    helpers.get_psql_config(mock_file),
-                    "fail to properly read config from file")
-
-
-
     def test_replace_envvars_with_vals(self):
         # test if correctly parses environmental variables
         dic1 = {"field1": "$TESTENVVAR:15,$TESTENVVAR",

@@ -135,23 +135,6 @@ def parse_config(configfile):
 
 
 
-def get_psql_config(psql_configfile):
-    """
-    returns configurations of the PostgreSQL table
-    adds field url from the fields urlheader, host, port and database
-    :type psql_configfile: str      path to config file
-    :rtype               : dict     configs
-    """
-    config = parse_config(psql_configfile)
-
-    config["url"] = "{}{}:{}/{}".format(config["urlheader"],
-                                        config["host"],
-                                        config["port"],
-                                        config["database"])
-    return config
-
-
-
 def replace_envvars_with_vals(dic):
     """
     for a dictionary dic which may contain values of the form "$varname",

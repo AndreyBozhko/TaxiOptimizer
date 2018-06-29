@@ -21,11 +21,11 @@ class BatchTransformer:
         of the S3 bucket, raw data and PostgreSQL table
         :type s3_configfile:     str        path to s3 config file
         :type schema_configfile: str        path to schema config file
-        :type psql_configfile:   str        path to psql config file 
+        :type psql_configfile:   str        path to psql config file
         """
         self.s3_config   = helpers.parse_config(s3_configfile)
         self.schema      = helpers.parse_config(schema_configfile)
-        self.psql_config = helpers.get_psql_config(psql_configfile)
+        self.psql_config = helpers.parse_config(psql_configfile)
 
         self.sc = pyspark.SparkContext.getOrCreate()
         self.sc.setLogLevel("ERROR")
@@ -46,12 +46,19 @@ class BatchTransformer:
         saves result of batch transformation to PostgreSQL database
         """
         sqlContext = pyspark.sql.SQLContext(self.sc)
+        sql_data   = sqlContext.createDataFrame(self.data) # need to use Row
 
-        sql_data = sqlContext.createDataFrame(self.data) # need to use Row
-        sql_data.write.jdbc(url       =self.psql_config["url"],
-                            table     =self.psql_config["dbtable"],
-                            mode      =self.psql_config["mode"],
-                            properties=self.psql_config["properties"])
+        options = "".join([".options(%s=self.psql_config[\"%s\"])" % (opt, opt) for opt in ["url",
+                                                                                            "dbtable",
+                                                                                            "driver",
+                                                                                            "user",
+                                                                                            "password",
+                                                                                            "partitionColumn",
+                                                                                            "lowerBound",
+                                                                                            "upperBound",
+                                                                                            "numPartitions"]])
+        command = "sql_data.write.format(\"jdbc\").mode(\"%s\")%s.save()" % (self.psql_config["mode"], options)
+        eval(command)
 
 
     def spark_transform(self):
@@ -92,7 +99,7 @@ class TaxiBatchTransformer(BatchTransformer):
         """
         BatchTransformer.spark_transform(self)
 
-        n = self.psql_config["top_n_to_save"]
+        n = self.psql_config["topntosave"]
 
         # calculation of top-n spots for each block and time slot
         self.data = (self.data

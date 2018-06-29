@@ -96,7 +96,7 @@ class TaxiStreamer(SparkStreamerFromKafka):
         :type start_offset:      int        offset from which to read from partitions of Kafka topic
         """
         SparkStreamerFromKafka.__init__(self, kafka_configfile, schema_configfile, stream_configfile, start_offset)
-        self.psql_config = helpers.get_psql_config(psql_configfile)
+        self.psql_config = helpers.parse_config(psql_configfile)
         self.load_batch_data()
 
 
@@ -105,28 +105,33 @@ class TaxiStreamer(SparkStreamerFromKafka):
         reads result of batch transformation from PostgreSQL database, splits it into BATCH_PARTS parts
         by time_slot field value and caches them
         """
-        parts, partitions = self.stream_config["BATCH_PARTS"], self.stream_config["PARTITIONS"]
+        self.parts = self.stream_config["BATCH_PARTS"]
+        self.total = self.stream_config["MAX_PARTS"]
+
+        self.hdata = {}
 
         sqlContext = pyspark.sql.SQLContext(self.sc)
-        historic_data = (sqlContext.read.jdbc(url       =self.psql_config["url"],
-                                              table     =self.psql_config["dbtable"],
-                                              properties=self.psql_config["properties"])
-                               .rdd.repartition(partitions)
+        query = "(SELECT * FROM %s WHERE time_slot >= {} AND time_slot < {}) tmp" % self.psql_config["dbtable"]
+
+        for tsl in range(self.parts):
+            tmin, tmax = self.total/self.parts*tsl, self.total/self.parts*(tsl+1)
+            self.psql_config["dbtable"] = query.format(tmin, tmax)
+
+            options = "".join([".options(%s=self.psql_config[\"%s\"])" % (opt, opt) for opt in ["url",
+                                                                                                "dbtable",
+                                                                                                "driver",
+                                                                                                "user",
+                                                                                                "password"]])
+            command = "sqlContext.read.format(\"jdbc\")%s.load()" % options
+
+            self.hdata[tsl] = eval(command)
+            self.hdata[tsl] = (self.hdata[tsl].rdd.repartition(self.stream_config["PARTITIONS"])
                                .map(lambda x: x.asDict())
                                .map(lambda x: ((x["time_slot"], x["block_idx"], x["block_idy"]),
                                                (x["longitude"], x["latitude"], x["passengers"]))))
 
-        historic_data.persist(pyspark.StorageLevel.MEMORY_ONLY_2)
-        self.total = historic_data.map(lambda x: x[0][0]).distinct().count()
-
-        total = self.total
-        self.hdata = {}
-        for tsl in range(parts):
-            self.hdata[tsl] = historic_data.filter(lambda x: x[0][0]*parts/total==tsl)
             self.hdata[tsl].persist(pyspark.StorageLevel.MEMORY_ONLY_2)
-            print "loaded batch {}/{} with {} rows".format(tsl+1, parts, self.hdata[tsl].count())
-
-        historic_data.unpersist()
+            print "loaded batch {}/{} with {} rows".format(tsl+1, self.parts, self.hdata[tsl].count())
 
 
     def process_each_rdd(self, time, rdd):
@@ -175,7 +180,7 @@ class TaxiStreamer(SparkStreamerFromKafka):
         print("========= RDD Batch Number: {0} - {1} =========".format(iPass, str(time)))
 
         try:
-            parts, total = self.stream_config["BATCH_PARTS"], self.total
+            parts, total = self.parts, self.total
 
             # calculate list of distinct time_slots in current RDD batch
             tsl_list = rdd.map(lambda x: x[0][0]*parts/total).distinct().collect()

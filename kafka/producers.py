@@ -62,9 +62,10 @@ class MyKafkaProducer(object):
                 message_info = line.strip()
                 msg = helpers.map_schema(message_info, self.schema)
 
-                self.producer.send(self.kafka_config["TOPIC"],
-                                   value=json.dumps(msg),
-                                   key=self.get_key(msg))
-
-                msg_cnt += 1
+                if msg is not None:
+                    self.producer.send(self.kafka_config["TOPIC"],
+                                       value=json.dumps(msg),
+                                       key=self.get_key(msg))
+                    msg_cnt += 1
+                    
                 time.sleep(0.001)

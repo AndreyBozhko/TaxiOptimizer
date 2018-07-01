@@ -36,7 +36,8 @@ Install and configure [AWS CLI](https://aws.amazon.com/cli/) and [Pegasus](https
 `git clone https://github.com/AndreyBozhko/TaxiOptimizer`.
 
 > AWS Tip: Add your local IP to your AWS VPC inbound rules
-> Pegasus Tip: ???
+
+> Pegasus Tip: In $PEGASUS_HOME/install/download_tech, change Zookeeper version to 3.4.12, and follow the notes in docs/pegasus_setup.odt to configure Pegasus
 
 #### CLUSTER STRUCTURE:
 
@@ -57,7 +58,7 @@ Lastly, run `misc_scripts/install_on_masters.sh` to clone **TaxiOptimizer** to t
 
 ##### Airflow setup
 
-The Apache Airflow scheduler can be installed on the master node of *spark-batch-cluster*. Follow the instructions in `docs/airflow_install.txt` to launch the Airflow server.
+The Apache Airflow scheduler can be installed on the master node of *spark-stream-cluster*. Follow the instructions in `docs/airflow_install.txt` to launch the Airflow server.
 
 
 ##### PostgreSQL setup
@@ -72,7 +73,7 @@ Configuration settings for Kafka, PostgreSQL, AWS S3 bucket, as well as the sche
 ## Running TaxiOptimizer
 
 ### Schedule the Batch Job
-Running `airflow/schedule.sh` on the master of *spark-batch-cluster* will start the batch job immediately, and will execute them every 24 hours.
+Running `airflow/schedule.sh` on the master of *spark-batch-cluster* will add the batch job to the scheduler. The batch job is set to execute every 24 hours, and it can be started and monitored from the Airflow GUI at the address `$SPARK_BATCH_CLUSTER_0:8081`.
 
 ### Start the Streaming Job
 Execute `./spark-run.sh --stream` on the master of *spark-stream-cluster* (preferably after the batch job has run for the first time).

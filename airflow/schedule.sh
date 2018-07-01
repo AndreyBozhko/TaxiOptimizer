@@ -11,9 +11,3 @@ fi
 
 cp $FILE $FOLDER/
 python $FOLDER/$FILE
-
-#nohup airflow scheduler 2> /dev/null &
-#nohup airflow webserver -p 8081 2> /dev/null &
-
-#airflow trigger_dag batch_scheduler
-airflow unpause batch_scheduler

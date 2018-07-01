@@ -78,9 +78,10 @@ class TestHelpersMethods(unittest.TestCase):
 
 
     def test_map_schema(self):
-        schema = {"DELIMITER": ";", "FIELDS": {"field1": 3, "field2": 1}}
-        line = ";".join(["a","b","c","d","e"])
-        ans = {"field1": "d", "field2": "b"}
+        schema = {"DELIMITER": ";", "FIELDS": {"field1": {"index": 3, "type": "int"},
+                                               "field2": {"index": 1, "type": "str"}}}
+        line = ";".join(["a","b","c","4","e"])
+        ans = {"field1": 4, "field2": "b"}
         # test if schema parses
         self.assertEqual(ans,
                 helpers.map_schema(line, schema),
@@ -125,16 +126,15 @@ class TestHelpersMethods(unittest.TestCase):
 
     def test_check_passengers(self):
         # test on valid input
-        d1 = {"passengers": "3"}
+        d1 = {"passengers": 3}
         self.assertEqual(3,
                 helpers.check_passengers(d1)["passengers"],
                 "incorrect number of passengers returned")
         # test for < 1 passengers, non-int passengers and absence of field passenger
         # None expected
-        d2 = {"passengers": "0"}
-        d3 = {"passengers": "qwerty"}
-        d4 = {"somefield": "5"}
-        for d in [d2, d3, d4]:
+        d2 = {"passengers": 0}
+        d3 = {"somefield": "5"}
+        for d in [d2, d3]:
             self.assertIsNone(
                     helpers.check_passengers(d),
                     "did not return None for input {}".format(d))

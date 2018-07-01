@@ -59,15 +59,17 @@ def determine_subblock_lonlat(subblock):
 
 def map_schema(line, schema):
     """
-    cleans the message msg, leaving only the fields given by schema
+    cleans the message msg, leaving only the fields given by schema, and casts the appropriate types
     returns None if unable to parse
     :type line  : str       message to parse
     :type schema: dict      schema that contains the fields to filter
-    :rtype      : dict      message in the format {"field": "value"}
+    :rtype      : dict      message in the format {"field": value}
     """
     try:
         msg = line.split(schema["DELIMITER"])
-        msg = {key:msg[schema["FIELDS"][key]] for key in schema["FIELDS"].keys()}
+        msg = {key:eval("%s(\"%s\")" % (schema["FIELDS"][key]["type"],
+                                    msg[schema["FIELDS"][key]["index"]]))
+                        for key in schema["FIELDS"].keys()}
     except:
         return
     return msg
@@ -83,7 +85,7 @@ def add_block_fields(record):
     :rtype      : dict      record with inserted new fields
     """
     try:
-        lon, lat = [float(record[field]) for field in ["longitude", "latitude"]]
+        lon, lat = [record[field] for field in ["longitude", "latitude"]]
         record["block_id"], record["sub_block_id"] = determine_block_ids(lon, lat)
         record["block_latid"], record["block_lonid"] = record["block_id"]
     except:
@@ -109,16 +111,15 @@ def add_time_slot_field(record):
 
 def check_passengers(record):
     """
-    converts field passengers from str to int
     returns None if number of passengers is < 1 or if unable to convert field
     :type record: dict      record where to convert field
     :rtype      : dict      record with converted field
     """
     try:
-        record["passengers"] = int(record["passengers"])
+        number = record["passengers"]
     except:
         return
-    if record["passengers"] < 1:
+    if number < 1:
         return
     return dict(record)
 

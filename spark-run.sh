@@ -9,7 +9,7 @@ KAFKACONFIGFILE=$PWD/config/kafka.ini
 
 AUX_FILES=$PWD/helpers/helpers.py
 
-PGPASSWORD=`ssh ubuntu@$SPARK_BATCH_CLUSTER_0 cat ~/.pgpass | sed s/"\(.*:\)\{4\}"//g`
+PGPASSWORD=`ssh ubuntu@$SPARK_STREAM_CLUSTER_0 cat ~/.pgpass | sed s/"\(.*:\)\{4\}"//g`
 export PGPASSWORD
 
 
@@ -20,7 +20,7 @@ case $1 in
     spark-submit --master spark://$SPARK_BATCH_CLUSTER_0:7077 \
                  --jars $PWD/postgresql-42.2.2.jar \
                  --py-files $AUX_FILES \
-                 --executor-memory 4G \
+                 --executor-memory 6G \
                  batch_processing/populate_database.py \
                  $S3CONFIGFILE $SCHEMAFILE1 $PSQLCONFIGFILE
     ;;
@@ -31,7 +31,7 @@ case $1 in
                  --packages org.apache.spark:spark-streaming-kafka-0-8_2.11:2.2.0 \
                  --jars $PWD/postgresql-42.2.2.jar \
                  --py-files $AUX_FILES \
-                 --executor-memory 4G \
+                 --executor-memory 6G \
                  streaming/stream_data.py \
                  $KAFKACONFIGFILE $SCHEMAFILE2 $STREAMCONFIGFILE $PSQLCONFIGFILE
     ;;

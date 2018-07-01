@@ -1,11 +1,9 @@
-#import os
 import sys
 sys.path.append("./helpers/")
 
 import json
 import heapq
 import helpers
-import psycopg2
 import pyspark
 
 
@@ -45,39 +43,14 @@ class BatchTransformer:
 
     def save_to_postgresql(self):
         """
-        saves result of batch transformation to PostgreSQL database
+        saves result of batch transformation to PostgreSQL database and adds necessary index
         """
-        sqlContext = pyspark.sql.SQLContext(self.sc)
-        sql_data   = sqlContext.createDataFrame(self.data) # need to use Row
+        configs = {key: self.psql_config[key] for key in ["url", "driver", "user", "password",
+                                                          "partitionColumn", "lowerBound", "upperBound", "numPartitions"]}
+        configs["dbtable"] = self.psql_config["dbtable_batch"]
 
-        options = "".join([".options(%s=self.psql_config[\"%s\"])" % (opt, opt) for opt in ["url",
-                                                                                            "dbtable",
-                                                                                            "driver",
-                                                                                            "user",
-                                                                                            "password",
-                                                                                            "partitionColumn",
-                                                                                            "lowerBound",
-                                                                                            "upperBound",
-                                                                                            "numPartitions"]])
-        command = "sql_data.write.format(\"jdbc\").mode(\"%s\")%s.save()" % (self.psql_config["mode"], options)
-        eval(command)
-
-
-    def add_index_postgresql(self):
-        """
-        adds index to PostgreSQL table on column time_slot
-        """
-        conn_string = "host='%s' dbname='%s' user='%s' password='%s'" % (self.psql_config["host"],
-                                                                         self.psql_config["dbname"],
-                                                                         self.psql_config["user"],
-                                                                         self.psql_config["password"])
-        conn = psycopg2.connect(conn_string)
-        cursor = conn.cursor()
-        cursor.execute("CREATE INDEX ON %s (%s)" % (self.psql_config["dbtable"],
-                                                    self.psql_config["partitionColumn"]))
-        conn.commit()
-        cursor.close()
-        conn.close()
+        helpers.save_to_postgresql(self.data, pyspark.sql.SQLContext(self.sc), configs, self.psql_config["mode"])
+        helpers.add_index_postgresql(configs["dbtable"], self.psql_config["partitionColumn"], self.psql_config)
 
 
     def spark_transform(self):
@@ -101,7 +74,6 @@ class BatchTransformer:
         self.read_from_s3()
         self.spark_transform()
         self.save_to_postgresql()
-        self.add_index_postgresql()
 
 
 
@@ -136,9 +108,10 @@ class TaxiBatchTransformer(BatchTransformer):
         # recalculation of top-n, where for each key=(block_id, time_slot) top-n is calculated
         # based on top-n of (block_id, time_slot) and top-ns of (adjacent_block, time_slot+1)
         # from all adjacent blocks
+        maxval = self.psql_config["upperBound"]
         self.data = (self.data
                         .map(lambda x: ( (x["block_id"], x["time_slot"]), x["subblocks_psgcnt"] ))
-                        .flatMap(lambda x: [x] + [ ( (bl, (x[0][1]-1) % 144), x[1] ) for bl in helpers.get_neighboring_blocks(x[0][0]) ] )
+                        .flatMap(lambda x: [x] + [ ( (bl, (x[0][1]-1) % maxval), x[1] ) for bl in helpers.get_neighboring_blocks(x[0][0]) ] )
                         .reduceByKey(lambda x,y: x+y)
                         .mapValues(lambda vals: heapq.nlargest(n, vals, key=lambda x: x[1]))
                         .map(lambda x: {"block_latid":  x[0][0][0],

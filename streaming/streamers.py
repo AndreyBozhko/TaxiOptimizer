@@ -96,6 +96,7 @@ class TaxiStreamer(SparkStreamerFromKafka):
         SparkStreamerFromKafka.__init__(self, kafka_configfile, schema_configfile, stream_configfile, start_offset)
         self.psql_config = helpers.parse_config(psql_configfile)
         self.load_batch_data()
+        self.psql_n = 0
 
 
     def load_batch_data(self):
@@ -108,21 +109,16 @@ class TaxiStreamer(SparkStreamerFromKafka):
 
         self.hdata = {}
 
-        sqlContext = pyspark.sql.SQLContext(self.sc)
-        query = "(SELECT * FROM %s WHERE time_slot BETWEEN {} AND {})" % self.psql_config["dbtable"]
+        query = "(SELECT * FROM %s WHERE time_slot BETWEEN {} AND {}) tmp" % self.psql_config["dbtable_batch"]
 
         for tsl in range(self.parts):
             tmin, tmax = self.total/self.parts*tsl, self.total/self.parts*(tsl+1)-1
-            self.psql_config["dbtable"] = query.format(tmin, tmax)
 
-            options = "".join([".options(%s=self.psql_config[\"%s\"])" % (opt, opt) for opt in ["url",
-                                                                                                "dbtable",
-                                                                                                "driver",
-                                                                                                "user",
-                                                                                                "password"]])
-            command = "sqlContext.read.format(\"jdbc\")%s.load()" % options
+            configs = {key: self.psql_config[key] for key in ["url", "driver", "user", "password"]}
+            configs["dbtable"] = query.format(tmin, tmax)
 
-            self.hdata[tsl] = eval(command)
+            self.hdata[tsl] = helpers.read_from_postgresql(pyspark.sql.SQLContext(self.sc), configs)
+
             self.hdata[tsl] = (self.hdata[tsl].rdd.repartition(self.stream_config["PARTITIONS"])
                                .map(lambda x: x.asDict())
                                .map(lambda x: ((x["time_slot"], x["block_latid"], x["block_lonid"]),
@@ -164,9 +160,12 @@ class TaxiStreamer(SparkStreamerFromKafka):
                 length, total = len(x[3][1]), sum(x[3][1])
                 np.random.seed(4040 + x[3][0])
                 choices = np.random.choice(length, min(3, length), p=np.array(x[3][1])/float(total), replace=False)
-                return (x[0], x[1], [x[2][c] for c in choices])
+                return {"vehicle_id": x[0], "vehicle_pos": list(x[1]),
+                        "spot_lon": [x[2][c][0] for c in choices],
+                        "spot_lat": [x[2][c][1] for c in choices]}
             except:
-                return (x[0], x[1], [])
+                return {"vehicle_id": x[0], "vehicle_pos": list(x[1]),
+                        "spot_lon": [], "spot_lat": []}
 
 
         global iPass
@@ -204,9 +203,14 @@ class TaxiStreamer(SparkStreamerFromKafka):
                                           .flatMap(my_join, preservesPartitioning=True)
                                           .filter(lambda x: x is not None)
                                           .map(select_customized_spots)) for tsl in tsl_list])
+
             # output data
-            # not actually implemented yet
-            print resDF.count()
+            self.psql_n += 1
+            configs = {key: self.psql_config[key] for key in ["url", "driver", "user", "password"]}
+            configs["dbtable"] = self.psql_config["dbtable_stream"]+str(self.psql_n)
+
+            helpers.save_to_postgresql(resDF, pyspark.sql.SQLContext(self.sc), configs, self.psql_config["mode"])
+            helpers.add_index_postgresql(configs["dbtable"], "vehicle_id", self.psql_config)
 
         except:
             pass

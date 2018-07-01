@@ -1,11 +1,11 @@
 #!/bin/bash
 
-S3CONFIGFILE=$PWD/config/s3bucket.ini
-SCHEMAFILE1=$PWD/config/schema_for_raw_data.ini
-SCHEMAFILE2=$PWD/config/schema_for_streaming.ini
-STREAMCONFIGFILE=$PWD/config/stream.ini
-PSQLCONFIGFILE=$PWD/config/postgresql.ini
-KAFKACONFIGFILE=$PWD/config/kafka.ini
+S3CONFIGFILE=$PWD/config/s3bucket.config
+SCHEMAFILE1=$PWD/config/schema_for_raw_data.config
+SCHEMAFILE2=$PWD/config/schema_for_streaming.config
+STREAMCONFIGFILE=$PWD/config/stream.config
+PSQLCONFIGFILE=$PWD/config/postgresql.config
+KAFKACONFIGFILE=$PWD/config/kafka.config
 
 AUX_FILES=$PWD/helpers/helpers.py
 
@@ -21,7 +21,7 @@ case $1 in
                  --jars $PWD/postgresql-42.2.2.jar \
                  --py-files $AUX_FILES \
                  --executor-memory 6G \
-                 batch_processing/populate_database.py \
+                 batch_processing/main_batch.py \
                  $S3CONFIGFILE $SCHEMAFILE1 $PSQLCONFIGFILE
     ;;
 
@@ -32,7 +32,7 @@ case $1 in
                  --jars $PWD/postgresql-42.2.2.jar \
                  --py-files $AUX_FILES \
                  --executor-memory 6G \
-                 streaming/stream_data.py \
+                 streaming/main_stream.py \
                  $KAFKACONFIGFILE $SCHEMAFILE2 $STREAMCONFIGFILE $PSQLCONFIGFILE
     ;;
 

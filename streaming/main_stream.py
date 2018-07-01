@@ -9,7 +9,7 @@ from streamers import TaxiStreamer
 if __name__ == '__main__':
 
     if len(sys.argv) != 5:
-        sys.stderr.write("Usage: spark-submit --packages <packages> stream_data.py <kafkaconfigfile> <schemaconfigfile> <streamconfigfile> <postgresconfigfile> \n")
+        sys.stderr.write("Usage: spark-submit --packages <packages> main_stream.py <kafkaconfigfile> <schemaconfigfile> <streamconfigfile> <postgresconfigfile> \n")
         sys.exit(-1)
 
     kafka_configfile, schema_configfile, stream_configfile, psql_configfile = sys.argv[1:5]

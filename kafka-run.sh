@@ -1,8 +1,8 @@
 #!/bin/bash
 
-S3CONFIGFILE=$PWD/config/s3bucket.ini
-SCHEMAFILE=$PWD/config/schema_for_streaming.ini
-KAFKACONFIGFILE=$PWD/config/kafka.ini
+S3CONFIGFILE=$PWD/config/s3bucket.config
+SCHEMAFILE=$PWD/config/schema_for_streaming.config
+KAFKACONFIGFILE=$PWD/config/kafka.config
 
 TOPIC=`grep TOPIC $KAFKACONFIGFILE | sed s/"TOPIC"//g | sed s/[:," "\"]//g`
 NUM_PARTITIONS=`grep PARTITIONS $KAFKACONFIGFILE | sed s/[^[:digit:]]//g`
@@ -40,7 +40,7 @@ case $1 in
 
   --produce)
 
-    python kafka/produce_messages.py $KAFKACONFIGFILE $SCHEMAFILE $S3CONFIGFILE &
+    python kafka/main_produce.py $KAFKACONFIGFILE $SCHEMAFILE $S3CONFIGFILE &
     ;;
 
   --describe)

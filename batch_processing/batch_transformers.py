@@ -3,7 +3,9 @@ import sys
 sys.path.append("./helpers/")
 
 import json
+import heapq
 import helpers
+import psycopg2
 import pyspark
 
 
@@ -61,6 +63,23 @@ class BatchTransformer:
         eval(command)
 
 
+    def add_index_postgresql(self):
+        """
+        adds index to PostgreSQL table on column time_slot
+        """
+        conn_string = "host='%s' dbname='%s' user='%s' password='%s'" % (self.psql_config["host"],
+                                                                         self.psql_config["dbname"],
+                                                                         self.psql_config["user"],
+                                                                         self.psql_config["password"])
+        conn = psycopg2.connect(conn_string)
+        cursor = conn.cursor()
+        cursor.execute("CREATE INDEX ON %s (%s)" % (self.psql_config["dbtable"],
+                                                    self.psql_config["partitionColumn"]))
+        conn.commit()
+        cursor.close()
+        conn.close()
+
+
     def spark_transform(self):
         """
         transforms Spark RDD with raw data into RDD with cleaned data;
@@ -82,6 +101,7 @@ class BatchTransformer:
         self.read_from_s3()
         self.spark_transform()
         self.save_to_postgresql()
+        self.add_index_postgresql()
 
 
 
@@ -107,7 +127,7 @@ class TaxiBatchTransformer(BatchTransformer):
                         .reduceByKey(lambda x,y: x+y)
                         .map(lambda x: ( (x[0][0], x[0][1]), [(x[0][2], x[1])] ))
                         .reduceByKey(lambda x,y: x+y)
-                        .mapValues(lambda vals: sorted(vals, key=lambda x: -x[1])[:n])
+                        .mapValues(lambda vals: heapq.nlargest(n, vals, key=lambda x: x[1]))
                         .map(lambda x: {"block_id":          x[0][0],
                                         "time_slot":         x[0][1],
                                         "subblocks_psgcnt":  x[1]}))
@@ -120,7 +140,7 @@ class TaxiBatchTransformer(BatchTransformer):
                         .map(lambda x: ( (x["block_id"], x["time_slot"]), x["subblocks_psgcnt"] ))
                         .flatMap(lambda x: [x] + [ ( (bl, (x[0][1]-1) % 144), x[1] ) for bl in helpers.get_neighboring_blocks(x[0][0]) ] )
                         .reduceByKey(lambda x,y: x+y)
-                        .mapValues(lambda vals: sorted(vals, key=lambda x: -x[1])[:n])
+                        .mapValues(lambda vals: heapq.nlargest(n, vals, key=lambda x: x[1]))
                         .map(lambda x: {"block_idx":  x[0][0][0],
                                         "block_idy":  x[0][0][1],
                                         "time_slot":  x[0][1],

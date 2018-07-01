@@ -2,6 +2,9 @@
 ### Python 2.7.x ###
 boto3
 flask
+flask-googlemaps
+Jinja2
 kafka-python
 lazyreader
 mock
+psycopg2-binary

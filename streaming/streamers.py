@@ -22,7 +22,6 @@ class SparkStreamerFromKafka:
         of Kafka (brokers, topic, offsets), data schema and batch interval for streaming
         :type kafka_configfile:  str        path to s3 config file
         :type schema_configfile: str        path to schema config file
-        :type batch_interval:    float      time window for a single batch (in seconds)
         :type start_offset:      int        offset from which to read from partitions of Kafka topic
         """
         self.kafka_config  = helpers.parse_config(kafka_configfile)
@@ -92,7 +91,6 @@ class TaxiStreamer(SparkStreamerFromKafka):
         :type kafka_configfile:  str        path to s3 config file
         :type schema_configfile: str        path to schema config file
         :type psql_configfile:   str        path to psql config file
-        :type batch_interval:    float      time window for a single batch (in seconds)
         :type start_offset:      int        offset from which to read from partitions of Kafka topic
         """
         SparkStreamerFromKafka.__init__(self, kafka_configfile, schema_configfile, stream_configfile, start_offset)
@@ -111,10 +109,10 @@ class TaxiStreamer(SparkStreamerFromKafka):
         self.hdata = {}
 
         sqlContext = pyspark.sql.SQLContext(self.sc)
-        query = "(SELECT * FROM %s WHERE time_slot >= {} AND time_slot < {}) tmp" % self.psql_config["dbtable"]
+        query = "(SELECT * FROM %s WHERE time_slot BETWEEN {} AND {})" % self.psql_config["dbtable"]
 
         for tsl in range(self.parts):
-            tmin, tmax = self.total/self.parts*tsl, self.total/self.parts*(tsl+1)
+            tmin, tmax = self.total/self.parts*tsl, self.total/self.parts*(tsl+1)-1
             self.psql_config["dbtable"] = query.format(tmin, tmax)
 
             options = "".join([".options(%s=self.psql_config[\"%s\"])" % (opt, opt) for opt in ["url",

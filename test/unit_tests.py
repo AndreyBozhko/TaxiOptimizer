@@ -97,7 +97,7 @@ class TestHelpersMethods(unittest.TestCase):
         dic = {"latitude": 60.0008, "longitude": -60.0008}
         dic2 = dict(dic)
         dic2["block_id"], dic2["sub_block_id"] = (2849, 3900), (56996, 78003)
-        dic2["block_id_x"], dic2["block_id_y"] = 2849, 3900
+        dic2["block_latid"], dic2["block_lonid"] = 2849, 3900
         self.assertEqual(dic2,
                 helpers.add_block_fields(dic),
                 'did not insert correct block ids')

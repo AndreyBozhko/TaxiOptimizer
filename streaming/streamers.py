@@ -2,7 +2,6 @@ import sys
 sys.path.append("./helpers/")
 
 import json
-import time
 import pyspark
 import helpers
 import numpy as np
@@ -95,6 +94,7 @@ class TaxiStreamer(SparkStreamerFromKafka):
         """
         SparkStreamerFromKafka.__init__(self, kafka_configfile, schema_configfile, stream_configfile, start_offset)
         self.psql_config = helpers.parse_config(psql_configfile)
+        self.sqlContext = pyspark.sql.SQLContext(self.sc)
         self.load_batch_data()
         self.psql_n = 0
 
@@ -117,7 +117,7 @@ class TaxiStreamer(SparkStreamerFromKafka):
             configs = {key: self.psql_config[key] for key in ["url", "driver", "user", "password"]}
             configs["dbtable"] = query.format(tmin, tmax)
 
-            self.hdata[tsl] = helpers.read_from_postgresql(pyspark.sql.SQLContext(self.sc), configs)
+            self.hdata[tsl] = helpers.read_from_postgresql(self.sqlContext, configs)
 
             self.hdata[tsl] = (self.hdata[tsl].rdd.repartition(self.stream_config["PARTITIONS"])
                                .map(lambda x: x.asDict())
@@ -204,12 +204,12 @@ class TaxiStreamer(SparkStreamerFromKafka):
                                           .filter(lambda x: x is not None)
                                           .map(select_customized_spots)) for tsl in tsl_list])
 
-            # output data
+            # save data
             self.psql_n += 1
             configs = {key: self.psql_config[key] for key in ["url", "driver", "user", "password"]}
             configs["dbtable"] = self.psql_config["dbtable_stream"]+str(self.psql_n)
 
-            helpers.save_to_postgresql(resDF, pyspark.sql.SQLContext(self.sc), configs, self.psql_config["mode"])
+            helpers.save_to_postgresql(resDF, self.sqlContext, configs, self.psql_config["mode"])
             helpers.add_index_postgresql(configs["dbtable"], "vehicle_id", self.psql_config)
 
         except:

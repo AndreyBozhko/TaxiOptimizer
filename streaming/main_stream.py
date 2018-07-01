@@ -1,5 +1,4 @@
 import sys
-import pyspark
 from streamers import TaxiStreamer
 
 

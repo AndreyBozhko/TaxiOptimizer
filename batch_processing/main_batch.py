@@ -1,5 +1,4 @@
 import sys
-import pyspark
 from batch_transformers import TaxiBatchTransformer
 
 

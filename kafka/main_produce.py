@@ -1,4 +1,4 @@
-import os, sys
+import sys
 sys.path.append("./helpers/")
 
 from producers import MyKafkaProducer

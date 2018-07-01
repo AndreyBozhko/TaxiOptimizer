@@ -76,7 +76,7 @@ def map_schema(line, schema):
 
 def add_block_fields(record):
     """
-    adds fields block_id ((int, int)), sub_block_id ((int, int)), block_id_x (int), block_id_y (int)
+    adds fields block_id ((int, int)), sub_block_id ((int, int)), block_latid (int), block_lonid (int)
     to the record based on existing fields longitude and latitude
     returns None if unable to add fields
     :type record: dict      record into which insert new fields
@@ -85,7 +85,7 @@ def add_block_fields(record):
     try:
         lon, lat = [float(record[field]) for field in ["longitude", "latitude"]]
         record["block_id"], record["sub_block_id"] = determine_block_ids(lon, lat)
-        record["block_id_x"], record["block_id_y"] = record["block_id"]
+        record["block_latid"], record["block_lonid"] = record["block_id"]
     except:
         return
     return dict(record)

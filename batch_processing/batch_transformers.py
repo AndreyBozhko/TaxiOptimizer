@@ -141,9 +141,9 @@ class TaxiBatchTransformer(BatchTransformer):
                         .flatMap(lambda x: [x] + [ ( (bl, (x[0][1]-1) % 144), x[1] ) for bl in helpers.get_neighboring_blocks(x[0][0]) ] )
                         .reduceByKey(lambda x,y: x+y)
                         .mapValues(lambda vals: heapq.nlargest(n, vals, key=lambda x: x[1]))
-                        .map(lambda x: {"block_idx":  x[0][0][0],
-                                        "block_idy":  x[0][0][1],
-                                        "time_slot":  x[0][1],
-                                        "longitude":  [helpers.determine_subblock_lonlat(el[0])[0] for el in x[1]],
-                                        "latitude":   [helpers.determine_subblock_lonlat(el[0])[1] for el in x[1]],
-                                        "passengers": [el[1] for el in x[1]] } ))
+                        .map(lambda x: {"block_latid":  x[0][0][0],
+                                        "block_lonid":  x[0][0][1],
+                                        "time_slot":    x[0][1],
+                                        "longitude":    [helpers.determine_subblock_lonlat(el[0])[0] for el in x[1]],
+                                        "latitude":     [helpers.determine_subblock_lonlat(el[0])[1] for el in x[1]],
+                                        "passengers":   [el[1] for el in x[1]] } ))

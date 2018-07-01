@@ -64,8 +64,8 @@ class SparkStreamerFromKafka:
                                     .map(helpers.add_block_fields)
                                     .map(helpers.add_time_slot_field)
                                     .filter(lambda x: x is not None)
-                                    .map(lambda x: ((x["time_slot"], x["block_id_x"], x["block_id_y"]),
-                                                    (x["vehicle_id"], x["longitude"], x["latitude"], x["datetime"]))))
+                                    .map(lambda x: ((x["time_slot"],  x["block_latid"], x["block_lonid"]),
+                                                    (x["vehicle_id"], x["longitude"],   x["latitude"], x["datetime"]))))
 
 
     def run(self):
@@ -125,8 +125,8 @@ class TaxiStreamer(SparkStreamerFromKafka):
             self.hdata[tsl] = eval(command)
             self.hdata[tsl] = (self.hdata[tsl].rdd.repartition(self.stream_config["PARTITIONS"])
                                .map(lambda x: x.asDict())
-                               .map(lambda x: ((x["time_slot"], x["block_idx"], x["block_idy"]),
-                                               (x["longitude"], x["latitude"], x["passengers"]))))
+                               .map(lambda x: ((x["time_slot"], x["block_latid"], x["block_lonid"]),
+                                               (x["longitude"], x["latitude"],    x["passengers"]))))
 
             self.hdata[tsl].persist(pyspark.StorageLevel.MEMORY_ONLY_2)
             print "loaded batch {}/{} with {} rows".format(tsl+1, self.parts, self.hdata[tsl].count())
@@ -142,8 +142,8 @@ class TaxiStreamer(SparkStreamerFromKafka):
         def my_join(x):
             """
             joins the record from table with historical data with the records of the taxi drivers' locations
-            on the key (time_slot, block_id_x, block_id_y)
-            schema for x: ((time_slot, block_idx, block_idy), (longitude, latitude, passengers))
+            on the key (time_slot, block_latid, block_lonid)
+            schema for x: ((time_slot, block_latid, block_lonid), (longitude, latitude, passengers))
             """
             try:
                 return map(lambda el: (  el[0][0],
@@ -186,7 +186,7 @@ class TaxiStreamer(SparkStreamerFromKafka):
             # transform rdd and broadcast to workers
             # rdd_bcast has the following schema
             # rdd_bcast = {key: [list of value]}
-            # key = (time_slot, block_id_x, block_id_y)
+            # key = (time_slot, block_latid, block_lonid)
             # value = ((vehicle_id, longitude, latitude, datetime), i)
             # i shows the order in which drivers were sending data from certain block for certain time_slot
             rdd_bcast = (rdd.groupByKey()

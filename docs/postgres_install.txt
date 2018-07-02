@@ -25,9 +25,9 @@ export PGUSER=<username>
 export PGPASSFILE=~/.pgpass
 
 # .pgpass template
-# localhost:5432:<dbname>:<username>:<password>
+localhost:5432:<dbname>:<username>:<password>
 
-# Execute to configure persmissions
+# Execute to configure permissions
 sudo -u postgres psql
 alter user <username> with encrypted password '<password>';
 grant all privileges on database <dbname> to <username> ;

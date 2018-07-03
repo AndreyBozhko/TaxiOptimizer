@@ -40,7 +40,7 @@ class MyKafkaProducer(object):
         msgwithkey = helpers.add_block_fields(msg)
         if msgwithkey is None:
             return
-        x, y = msgwithkey["block_id_x"], msgwithkey["block_id_y"]
+        x, y = msgwithkey["block_lonid"], msgwithkey["block_latid"]
         return str((x*137+y)%77703).encode()
 
 

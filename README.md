@@ -52,17 +52,17 @@ To create the clusters, put the appropriate `master.yml` and `workers.yml` files
 
 Additionally, execute `misc_scripts/copy_allnodesdns_to_masters.sh` to provide every master node with the addresses of every node from other clusters, and `misc_scripts/copy_idrsapub_to_workers.sh` to allow access to all workers via `peg ssh <clustername> <node>` command.
 
-> After that, any node's address from cluster some-cluster-name will be saved as the environment variable SOME_CLUSTER_NAME_$i as on every master, where $i = 0, 1, 2, ...*
+> After that, any node's address from cluster some-cluster-name will be saved as the environment variable SOME_CLUSTER_NAME_$i on every master, where $i = 0, 1, 2, ...*
 
 Lastly, run `misc_scripts/install_on_masters.sh` to clone **TaxiOptimizer** to the clusters, download necessary .jar files and install required Python packages.
 
 ##### Airflow setup
 
-The Apache Airflow scheduler can be installed on the master node of *spark-stream-cluster*. Follow the instructions in `docs/airflow_install.txt` to launch the Airflow server.
+The Apache Airflow scheduler can be installed on the master node of *spark-batch-cluster*. Follow the instructions in `docs/airflow_install.txt` to launch the Airflow server.
 
 
 ##### PostgreSQL setup
-The PostgreSQL database sits on the master node of *spark-batch-cluster*.
+The PostgreSQL database sits on the master node of *spark-stream-cluster*.
 Follow the instructions in `docs/postgres_install.txt` to download and setup access to it.
 
 ##### Configurations

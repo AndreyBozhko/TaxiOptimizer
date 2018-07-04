@@ -4,6 +4,7 @@ sys.path.append("./helpers/")
 import json
 import heapq
 import helpers
+import postgres
 import pyspark
 
 
@@ -49,8 +50,8 @@ class BatchTransformer:
                                                           "partitionColumn", "lowerBound", "upperBound", "numPartitions"]}
         configs["dbtable"] = self.psql_config["dbtable_batch"]
 
-        helpers.save_to_postgresql(self.data, pyspark.sql.SQLContext(self.sc), configs, self.psql_config["mode"])
-        helpers.add_index_postgresql(configs["dbtable"], self.psql_config["partitionColumn"], self.psql_config)
+        postgres.save_to_postgresql(self.data, pyspark.sql.SQLContext(self.sc), configs, self.psql_config["mode"])
+        postgres.add_index_postgresql(configs["dbtable"], self.psql_config["partitionColumn"], self.psql_config)
 
 
     def spark_transform(self):

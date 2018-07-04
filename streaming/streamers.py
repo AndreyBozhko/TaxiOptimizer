@@ -4,6 +4,7 @@ sys.path.append("./helpers/")
 import json
 import pyspark
 import helpers
+import postgres
 import numpy as np
 from pyspark.streaming.kafka import KafkaUtils, TopicAndPartition
 
@@ -117,7 +118,7 @@ class TaxiStreamer(SparkStreamerFromKafka):
             configs = {key: self.psql_config[key] for key in ["url", "driver", "user", "password"]}
             configs["dbtable"] = query.format(tmin, tmax)
 
-            self.hdata[tsl] = helpers.read_from_postgresql(self.sqlContext, configs)
+            self.hdata[tsl] = postgres.read_from_postgresql(self.sqlContext, configs)
 
             self.hdata[tsl] = (self.hdata[tsl].rdd.repartition(self.stream_config["PARTITIONS"])
                                .map(lambda x: x.asDict())
@@ -209,8 +210,8 @@ class TaxiStreamer(SparkStreamerFromKafka):
             configs = {key: self.psql_config[key] for key in ["url", "driver", "user", "password"]}
             configs["dbtable"] = self.psql_config["dbtable_stream"]+str(self.psql_n)
 
-            helpers.save_to_postgresql(resDF, self.sqlContext, configs, self.psql_config["mode"])
-            helpers.add_index_postgresql(configs["dbtable"], "vehicle_id", self.psql_config)
+            postgres.save_to_postgresql(resDF, self.sqlContext, configs, self.psql_config["mode"])
+            postgres.add_index_postgresql(configs["dbtable"], "vehicle_id", self.psql_config)
 
         except:
             pass

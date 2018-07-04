@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# allows access to all workers via peg ssh <clustername> <node> command
+
 line=`cat ~/.ssh/id_rsa.pub`
 
 clusters=kafka-cluster,spark-batch-cluster,spark-stream-cluster,flask-node

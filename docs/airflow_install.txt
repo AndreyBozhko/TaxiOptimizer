@@ -1,6 +1,7 @@
 # Execute to install Airflow
 export AIRFLOW_HOME=~/airflow
 pip install apache-airflow
+airflow initdb
 
 # Add under [core] in $AIRFLOW_HOME/airflow.cfg:
 "default_timezone = est"

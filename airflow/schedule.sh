@@ -11,3 +11,5 @@ fi
 
 cp $FILE $FOLDER/
 python $FOLDER/$FILE
+
+airflow initdb

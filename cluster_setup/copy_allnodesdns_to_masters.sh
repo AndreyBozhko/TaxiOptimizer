@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# provides every master node with the addresses of every node from other clusters
+
 output=""
 dest=/home/ubuntu/.profile
 

@@ -146,7 +146,8 @@ class TaxiStreamer(SparkStreamerFromKafka):
                 return map(lambda el: (  el[0][0],
                                         (el[0][1], el[0][2]),
                                      zip( x[1][0],  x[1][1]),
-                                        (el[1],     x[1][2])  ), rdd_bcast.value[x[0]])
+                                        (el[1],     x[1][2]),
+                                        el[0][3]  ), rdd_bcast.value[x[0]])
             except:
                 return [None]
 
@@ -155,7 +156,7 @@ class TaxiStreamer(SparkStreamerFromKafka):
             chooses no more than 3 pickup spots from top-n,
             based on the total number of rides from that spot
             and on the order in which the drivers send their location data
-            schema for x: (vehicle_id, (longitude, latitude), [list of spots (lon, lat)], (i, [list of passenger pickups]))
+            schema for x: (vehicle_id, (longitude, latitude), [list of spots (lon, lat)], (i, [list of passenger pickups]), datetime)
             """
             try:
                 length, total = len(x[3][1]), sum(x[3][1])
@@ -163,10 +164,11 @@ class TaxiStreamer(SparkStreamerFromKafka):
                 choices = np.random.choice(length, min(3, length), p=np.array(x[3][1])/float(total), replace=False)
                 return {"vehicle_id": x[0], "vehicle_pos": list(x[1]),
                         "spot_lon": [x[2][c][0] for c in choices],
-                        "spot_lat": [x[2][c][1] for c in choices]}
+                        "spot_lat": [x[2][c][1] for c in choices],
+                        "datetime": x[4]}
             except:
                 return {"vehicle_id": x[0], "vehicle_pos": list(x[1]),
-                        "spot_lon": [], "spot_lat": []}
+                        "spot_lon": [], "spot_lat": [], "datetime": x[4]}
 
 
         global iPass

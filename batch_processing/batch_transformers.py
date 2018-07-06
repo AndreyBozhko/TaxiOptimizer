@@ -105,6 +105,8 @@ class TaxiBatchTransformer(BatchTransformer):
                                         "time_slot":         x[0][1],
                                         "subblocks_psgcnt":  x[1]}))
 
+        self.data.persist(pyspark.StorageLevel.MEMORY_AND_DISK).count()
+
 
         # recalculation of top-n, where for each key=(block_id, time_slot) top-n is calculated
         # based on top-n of (block_id, time_slot) and top-ns of (adjacent_block, time_slot+1)

@@ -4,7 +4,7 @@ from airflow.operators.bash_operator import BashOperator
 from datetime import datetime, timedelta
 
 
-schedule_interval = timedelta(days=1)
+schedule_interval = timedelta(days=2)
 
 default_args = {
     'owner': 'AndreyBozhko',
@@ -45,7 +45,7 @@ task = BashOperator(
 
 task.doc_md = """\
 #### Task Documentation
-Spark Batch Job is scheduled to start every day
+Spark Batch Job is scheduled to start every other day
 """
 
 dag.doc_md = __doc__

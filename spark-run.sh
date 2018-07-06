@@ -20,6 +20,7 @@ case $1 in
     spark-submit --master spark://$SPARK_BATCH_CLUSTER_0:7077 \
                  --jars $PWD/postgresql-42.2.2.jar \
                  --py-files $AUX_FILES \
+                 --driver-memory 4G \
                  --executor-memory 4G \
                  batch_processing/main_batch.py \
                  $S3CONFIGFILE $SCHEMAFILE1 $PSQLCONFIGFILE
@@ -31,6 +32,7 @@ case $1 in
                  --packages org.apache.spark:spark-streaming-kafka-0-8_2.11:2.2.0 \
                  --jars $PWD/postgresql-42.2.2.jar \
                  --py-files $AUX_FILES \
+                 --driver-memory 4G \
                  --executor-memory 4G \
                  streaming/main_stream.py \
                  $KAFKACONFIGFILE $SCHEMAFILE2 $STREAMCONFIGFILE $PSQLCONFIGFILE
@@ -38,7 +40,7 @@ case $1 in
 
   *)
 
-    echo "Usage: ./run.sh [--batch|--stream]"
+    echo "Usage: ./spark-run.sh [--batch|--stream]"
     ;;
 
 esac

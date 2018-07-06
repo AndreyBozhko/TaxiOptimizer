@@ -60,7 +60,7 @@ case $1 in
 
   *)
 
-    echo "Usage: ./kafka_run.sh [--create|--delete|--describe|--produce|--console-consume]"
+    echo "Usage: ./kafka-run.sh [--create|--delete|--describe|--produce|--console-consume]"
     ;;
 
 esac

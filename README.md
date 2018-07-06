@@ -81,7 +81,7 @@ If the topic does not exist, run `./kafka-run --create`. To describe existing to
 It is also possible to delete inactive topic using the option `--delete`, or view the messages in the topic with the option `--console-consume`.
 
 ### Flask
-???
+Create the file `config/GoogleAPIKey.config` with your Google Maps API key, and run `flask/run.sh` to start the Flask server.
 
 
 ### Testing

@@ -8,3 +8,4 @@ kafka-python
 lazyreader
 mock
 psycopg2-binary
+tornado

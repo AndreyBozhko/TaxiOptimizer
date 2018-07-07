@@ -10,18 +10,28 @@ import helpers
 import psycopg2
 
 
+# configure connection string for PostgreSQL database
 app.dbconfig = helpers.parse_config('/home/ubuntu/TaxiOptimizer/config/postgresql.config')
 app.conn_str = "host='%s' dbname='%s' user='%s' password='%s'" % (app.dbconfig["host"],
                                                                   app.dbconfig["dbname"],
                                                                   app.dbconfig["user"],
                                                                   app.dbconfig["password"])
 
+# set default vehicle_id and the list of coordinates to display
 app.vid = ''
+app.coords = None
+
+# read Google Maps API Key from file
 with open("/home/ubuntu/TaxiOptimizer/config/GoogleAPIKey.config") as f:
     app.APIkey = f.readline().strip()
-    
+
 
 def fetch_from_postgres(query):
+    """
+    gets the data from PostgreSQL database using the specified query
+    :type query: str
+    :rtype     : list of records from database
+    """
     conn = psycopg2.connect(app.conn_str)
     cursor = conn.cursor()
     cursor.execute(query)
@@ -32,15 +42,23 @@ def fetch_from_postgres(query):
 
 
 def get_spots(vid):
+    """
+    yields next pickup spots for taxi with given vid
+    :type vid: str
+    :rtype   : generator
+    """
     while True:
         query = "SELECT spot_lat, spot_lon, vehicle_id, vehicle_pos FROM %s WHERE vehicle_id='%s' ORDER BY datetime" % (app.dbconfig["dbtable_stream"], app.vid)
         for entry in fetch_from_postgres(query):
             yield entry
 
+
+# get the set of valid taxi vehicle_ids
 app.allowed_taxis = fetch_from_postgres("SELECT DISTINCT vehicle_id FROM %s" % app.dbconfig["dbtable_stream"])
 app.allowed_taxis = set([x[0] for x in app.allowed_taxis])
-app.coords = None
 
+
+# define the behavior when accessing routes '/', '/index', '/demo', '/track' and '/query'
 
 @app.route('/')
 @app.route('/index')

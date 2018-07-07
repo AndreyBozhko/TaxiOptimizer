@@ -22,6 +22,7 @@ class SparkStreamerFromKafka:
         of Kafka (brokers, topic, offsets), data schema and batch interval for streaming
         :type kafka_configfile:  str        path to s3 config file
         :type schema_configfile: str        path to schema config file
+        :type stream_configfile: str        path to stream config file
         :type start_offset:      int        offset from which to read from partitions of Kafka topic
         """
         self.kafka_config  = helpers.parse_config(kafka_configfile)
@@ -39,7 +40,6 @@ class SparkStreamerFromKafka:
     def initialize_stream(self):
         """
         initializes stream from Kafka topic
-        :type start_offset: int     offset from which to read from partitions of Kafka topic
         """
         topic, n = self.kafka_config["TOPIC"], self.kafka_config["PARTITIONS"]
         try:
@@ -90,6 +90,7 @@ class TaxiStreamer(SparkStreamerFromKafka):
         of Kafka (brokers, topic, offsets), PostgreSQL database, data schema and batch interval for streaming
         :type kafka_configfile:  str        path to s3 config file
         :type schema_configfile: str        path to schema config file
+        :type stream_configfile: str        path to stream config file
         :type psql_configfile:   str        path to psql config file
         :type start_offset:      int        offset from which to read from partitions of Kafka topic
         """
@@ -141,6 +142,7 @@ class TaxiStreamer(SparkStreamerFromKafka):
             joins the record from table with historical data with the records of the taxi drivers' locations
             on the key (time_slot, block_latid, block_lonid)
             schema for x: ((time_slot, block_latid, block_lonid), (longitude, latitude, passengers))
+            :type x: tuple( tuple(int, int, int), tuple(float, float, int) )
             """
             try:
                 return map(lambda el: (  el[0][0],
@@ -157,6 +159,7 @@ class TaxiStreamer(SparkStreamerFromKafka):
             based on the total number of rides from that spot
             and on the order in which the drivers send their location data
             schema for x: (vehicle_id, (longitude, latitude), [list of spots (lon, lat)], (i, [list of passenger pickups]), datetime)
+            :type x: tuple( str, tuple(float, float), list[tuple(float, float)], tuple(int, list[int]), str )
             """
             try:
                 length, total = len(x[3][1]), sum(x[3][1])

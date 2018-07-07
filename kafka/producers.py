@@ -21,7 +21,8 @@ class MyKafkaProducer(object):
         class constructor that initializes the instance according to the configurations
         of the S3 bucket and Kafka
         :type kafka_configfile: str     path to kafka config file
-        :type s3_configfile:    str     path to S3 config file
+        :type schema_file     : str     path to schema file
+        :type s3_configfile   : str     path to S3 config file
         """
         self.kafka_config = helpers.parse_config(kafka_configfile)
 

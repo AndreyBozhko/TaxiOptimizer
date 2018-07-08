@@ -46,8 +46,7 @@ class BatchTransformer:
         """
         saves result of batch transformation to PostgreSQL database and adds necessary index
         """
-        configs = {key: self.psql_config[key] for key in ["url", "driver", "user", "password",
-                                                          "partitionColumn", "lowerBound", "upperBound", "numPartitions"]}
+        configs = {key: self.psql_config[key] for key in ["url", "driver", "user", "password"]}
         configs["dbtable"] = self.psql_config["dbtable_batch"]
 
         postgres.save_to_postgresql(self.data, pyspark.sql.SQLContext(self.sc), configs, self.psql_config["mode"])
@@ -105,7 +104,7 @@ class TaxiBatchTransformer(BatchTransformer):
                                         "time_slot":         x[0][1],
                                         "subblocks_psgcnt":  x[1]}))
 
-        self.data.persist(pyspark.StorageLevel.MEMORY_AND_DISK).count()
+        self.data.persist(pyspark.StorageLevel(True, True, False, False, 3)).count()   # MEMORY_AND_DISK_3
 
 
         # recalculation of top-n, where for each key=(block_id, time_slot) top-n is calculated
@@ -123,3 +122,5 @@ class TaxiBatchTransformer(BatchTransformer):
                                         "longitude":    [helpers.determine_subblock_lonlat(el[0])[0] for el in x[1]],
                                         "latitude":     [helpers.determine_subblock_lonlat(el[0])[1] for el in x[1]],
                                         "passengers":   [el[1] for el in x[1]] } ))
+
+        self.data.persist(pyspark.StorageLevel(True, True, False, False, 3)).count()    # MEMORY_AND_DISK_3

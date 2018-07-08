@@ -49,7 +49,7 @@ class BatchTransformer:
         configs = {key: self.psql_config[key] for key in ["url", "driver", "user", "password"]}
         configs["dbtable"] = self.psql_config["dbtable_batch"]
 
-        postgres.save_to_postgresql(self.data, pyspark.sql.SQLContext(self.sc), configs, self.psql_config["mode"])
+        postgres.save_to_postgresql(self.data, pyspark.sql.SQLContext(self.sc), configs, self.psql_config["mode_batch"])
         postgres.add_index_postgresql(configs["dbtable"], self.psql_config["partitionColumn"], self.psql_config)
 
 

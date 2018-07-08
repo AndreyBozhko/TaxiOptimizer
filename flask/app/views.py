@@ -8,6 +8,7 @@ from flask import jsonify, render_template, request
 from flask_googlemaps import Map
 import helpers
 import psycopg2
+import random
 
 
 # configure connection string for PostgreSQL database
@@ -18,8 +19,8 @@ app.conn_str = "host='%s' dbname='%s' user='%s' password='%s'" % (app.dbconfig["
                                                                   app.dbconfig["password"])
 
 # set default vehicle_id and the list of coordinates to display
-app.vid = ''
-app.coords = None
+app.vid = []
+app.coords = []
 
 # read Google Maps API Key from file
 with open("/home/ubuntu/TaxiOptimizer/config/GoogleAPIKey.config") as f:
@@ -48,14 +49,14 @@ def get_spots(vid):
     :rtype   : generator
     """
     while True:
-        query = "SELECT spot_lat, spot_lon, vehicle_id, vehicle_pos FROM %s WHERE vehicle_id='%s' ORDER BY datetime" % (app.dbconfig["dbtable_stream"], app.vid)
+        query = "SELECT spot_lat, spot_lon, vehicle_id, vehicle_pos FROM %s WHERE vehicle_id='%s' ORDER BY datetime" % (app.dbconfig["dbtable_stream"], vid)
         for entry in fetch_from_postgres(query):
             yield entry
 
 
 # get the set of valid taxi vehicle_ids
 app.allowed_taxis = fetch_from_postgres("SELECT DISTINCT vehicle_id FROM %s" % app.dbconfig["dbtable_stream"])
-app.allowed_taxis = set([x[0] for x in app.allowed_taxis])
+app.allowed_taxis = [x[0] for x in app.allowed_taxis]
 
 
 # define the behavior when accessing routes '/', '/index', '/demo', '/track' and '/query'
@@ -63,6 +64,7 @@ app.allowed_taxis = set([x[0] for x in app.allowed_taxis])
 @app.route('/')
 @app.route('/index')
 def index():
+    app.vid, app.coords = [], []
     return render_template('index.html', APIkey=app.APIkey)
 
 
@@ -73,23 +75,27 @@ def demo():
 
 @app.route("/track")
 def track():
-    app.vid = request.args.get('vehicle_id', default='', type=str)
-    if app.vid not in app.allowed_taxis:
-        app.vid = app.allowed_taxis.pop()
-        app.allowed_taxis.add(app.vid)
+    vid = request.args.get('vehicle_id', default='', type=str)
+    if vid not in app.allowed_taxis:
+        while True:
+            vid = random.choice(app.allowed_taxis)
+            if vid not in app.vid:
+                break
 
-    app.coords = get_spots(app.vid)
-    res = app.coords.next()
+    app.vid += [vid]
+    app.coords += [get_spots(vid)]
+    res = [gen.next() for gen in app.coords]
+
     return render_template("track.html",
                            APIkey=app.APIkey,
                            vid=app.vid,
-                           taxiloc={"lat": res[3][1], "lng": res[3][0]},
-                           spots=[{"lat": el[0], "lng": el[1]} for el in zip(res[0], res[1])])
+                           taxiloc=[{"lat": rs[3][1], "lng": rs[3][0]} for rs in res],
+                           spots=[[{"lat": el[0], "lng": el[1]} for el in zip(rs[0], rs[1])] for rs in res])
 
 
 @app.route("/query")
 def query():
-    res = app.coords.next()
+    res = [gen.next() for gen in app.coords]
     return jsonify(vid=app.vid,
-                   taxiloc={"lat": res[3][1], "lng": res[3][0]},
-                   spots=[{"lat": el[0], "lng": el[1]} for el in zip(res[0], res[1])])
+                   taxiloc=[{"lat": rs[3][1], "lng": rs[3][0]} for rs in res],
+                   spots=[[{"lat": el[0], "lng": el[1]} for el in zip(rs[0], rs[1])] for rs in res])

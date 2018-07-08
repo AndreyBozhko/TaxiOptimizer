@@ -7,6 +7,7 @@ KAFKACONFIGFILE=$PWD/config/kafka.config
 TOPIC=`grep TOPIC $KAFKACONFIGFILE | sed s/"TOPIC"//g | sed s/[:," "\"]//g`
 NUM_PARTITIONS=`grep PARTITIONS $KAFKACONFIGFILE | sed s/[^[:digit:]]//g`
 REPL_FACTOR=`grep REPL_FACTOR $KAFKACONFIGFILE | sed s/[^[:digit:]]//g`
+RETENTION=`grep RETENTION $KAFKACONFIGFILE | sed s/[^[:digit:]]//g`
 ZOOKEEPER_IP=`grep ZOOKEEPER $KAFKACONFIGFILE | sed s/".*_IP"//g | sed s/[" "\"]//g | sed s/^.//g | sed s/.$//g`
 BROKERS_IP=`grep BROKERS $KAFKACONFIGFILE | sed s/".*_IP"//g | sed s/[" "\"]//g | sed s/^.//g | sed s/.$//g`
 
@@ -35,7 +36,11 @@ case $1 in
 
   --create)
 
-    kafka-topics.sh --create --zookeeper $ZOOKEEPER_IP --topic $TOPIC --partitions $NUM_PARTITIONS --replication-factor $REPL_FACTOR
+    kafka-topics.sh --create --zookeeper $ZOOKEEPER_IP \
+                             --topic $TOPIC \
+                             --partitions $NUM_PARTITIONS \
+                             --replication-factor $REPL_FACTOR \
+                             --config retention.ms=$RETENTION
     ;;
 
   --produce)

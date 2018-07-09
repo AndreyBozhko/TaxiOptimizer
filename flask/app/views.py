@@ -7,6 +7,7 @@ from app import app
 from flask import jsonify, render_template, request
 from flask_googlemaps import Map
 import helpers
+from math import floor
 import psycopg2
 import random
 
@@ -90,6 +91,7 @@ def track():
                            APIkey=app.APIkey,
                            vid=app.vid,
                            taxiloc=[{"lat": rs[3][1], "lng": rs[3][0]} for rs in res],
+                           corners=[(floor(rs[3][1]*200)/200.0, floor(rs[3][0]*200)/200.0) for rs in res],
                            spots=[[{"lat": el[0], "lng": el[1]} for el in zip(rs[0], rs[1])] for rs in res])
 
 
@@ -98,4 +100,5 @@ def query():
     res = [gen.next() for gen in app.coords]
     return jsonify(vid=app.vid,
                    taxiloc=[{"lat": rs[3][1], "lng": rs[3][0]} for rs in res],
+                   corners=[(floor(rs[3][1]*200)/200.0, floor(rs[3][0]*200)/200.0) for rs in res],
                    spots=[[{"lat": el[0], "lng": el[1]} for el in zip(rs[0], rs[1])] for rs in res])

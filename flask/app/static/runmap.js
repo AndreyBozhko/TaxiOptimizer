@@ -19,7 +19,8 @@ icons = ['http://maps.google.com/mapfiles/ms/icons/red-dot.png',
 
 function initialize() {
   var mapOptions = { zoom:   11,
-                     center: NY };
+                     center: NY,
+                     streetViewControl: false};
   map = new google.maps.Map(document.getElementById('map-canvas'), mapOptions);
 }
 
@@ -101,9 +102,7 @@ function update_values() {
 
               for (var i=0; i<spots[j].length; i++) {
                 markers[j][i].setPosition(new google.maps.LatLng(spots[j][i]));
-              }
-              for (var i=markers[j].length; i<spots[j].length; i++) {
-                markers[j][i].setMap(map);
+                if (markers[j][i].getMap() == null) markers[j][i].setMap(map);
               }
               for (var i=spots[j].length; i<markers[j].length; i++) {
                 markers[j][i].setMap(null);

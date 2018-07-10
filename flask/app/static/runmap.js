@@ -81,6 +81,8 @@ function update_values() {
             spots   = data.spots;
             corners = data.corners;
 
+            document.getElementById("timestr").innerHTML = data.timestr;
+
             if (vid.length > taxi.length) {
               for (var j = taxi.length; j < vid.length; j++) { create_markers(); }
             }
@@ -114,6 +116,6 @@ function update_values() {
 
 
 
-window.setInterval(function(){ update_values() }, 750);
+window.setInterval(function(){ update_values() }, 250);
 
 google.maps.event.addDomListener(window, 'load', initialize);

@@ -84,7 +84,7 @@ def get_next(coords, res=None):
     """
     if res == None:
         res = [c.next() for c in coords]
-	    if len(coords) == 1 or app.curtime >= 1320:
+        if len(coords) == 1 or app.curtime >= 1320:
             app.curtime = 590
         return res
 

@@ -117,12 +117,6 @@ def index():
 
 
 
-@app.route('/demo')
-def demo():
-    return render_template('demo.html', APIkey=app.APIkey)
-
-
-
 @app.route("/track")
 def track():
     newvid = []

@@ -43,16 +43,16 @@ h4, h5, h6
 { margin: 0;
   padding: 0 0 0px 0;
   font: normal 100% 'Calibri', sans-serif;
-  color: #FFF;
+  color: #000;
   line-height: 1.5em;}
 
 h5, h6
 { font: normal 75% 'Calibri', sans-serif;
-  color: #888;
+  color: #000;
   padding-bottom: 15px;}
 
 span
-{ color: #B1521A;
+{ color: #000;
   text-shadow: none;}
 
 a, a:hover
@@ -83,20 +83,20 @@ ol li
 
 header
 { height: 50px;
-  background: #1D1D1D;}
+  background: #FFF;}
 
 nav
 { height: 50px;}
 
 #strapline
-{ width: 940px;
+{ width: 1280px;
   height: 50px;
   text-align: center;
   margin: 0 auto;}
 
 #select-container
 { height: 120px;
-  width:  940px;
+  width:  1280px;
   padding-top: 20px;}
 
 .styled-select select {
@@ -114,7 +114,7 @@ nav
 
 #map-container
 { height: 600px;
-  width:  940px;
+  width:  1280px;
   padding-top: 10px;}
 
 #p_container
@@ -131,11 +131,11 @@ nav
 
 #map-canvas
 { height: 600px;
-  width:  940px;
+  width:  1280px;
   padding-top: 20px;}
 
 #welcome_slogan
-{ width: 940px;
+{ width: 1280px;
   float: left;
   height: 50px;
   padding-top: 10px;
@@ -144,7 +144,7 @@ nav
 #welcome_slogan H3
 { font: bold 350% 'Calibri', sans-serif;
   letter-spacing: -3px;
-  color: #FFF;}
+  color: #AAA;}
 
 #menubar
 {
@@ -166,7 +166,7 @@ ul#nav li
   background: transparent;}
 
 ul#nav li a
-{ float: left;
+{ float: center;
   font: bold 130% 'Calibri', sans-serif;
   height: 15px;
   margin: 8px 20px 0 0;
@@ -174,13 +174,13 @@ ul#nav li a
   padding: 0px 20px 10px 20px;
   background: transparent;
   text-align: center;
-  color: #FFF;
+  color: #000;
   text-decoration: none;}
 
 ul#nav li.current a, ul#nav li:hover a
-{ color: #FFF;
+{ color: #000;
   height: 18px;
-  background: #D40E00;
+  background: #FFF;
   text-shadow: none;}
 
 #slideshow_container
@@ -193,48 +193,8 @@ ul#nav li.current a, ul#nav li:hover a
   height: 250px;
   margin: 0 auto;}
 
-/* styling for the slideshow on the homepage */
-ul.slideshow {
-  list-style: none;
-  width: 940px;
-  height: 250px;
-  overflow: hidden;
-  position: relative;}
-
-ul.slideshow li {
-  position: absolute;
-  margin: 0;
-  padding: 0;
-  left: 0;
-  right: 0;}
-
-ul.slideshow li.show {
-  z-index: 500;}
-
-ul img {
-  border: none;}
-
-#slideshow-caption {
-  width: 940px;
-  height: 38px;
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  z-index: 500;}
-
-#slideshow-caption .slideshow-caption-container {
-  padding: 10px 25px 10px 25px;
-  background: transparent url(../images/transparent.png) repeat;
-  z-index: 1000;}
-
-#slideshow-caption p {
-  padding: 0;
-  font: normal 130% arial, sans-serif;
-  color: #FFF;
-  text-shadow: 1px 1px #000;}
-
 #site_content
-{ width: 940px;
+{ width: 1280px;
   overflow: hidden;}
 
 .sidebar_container
@@ -257,14 +217,14 @@ ul img {
   height: 30px;}
 
 #content
-{ width: 680px;
+{ width: 1280px;
   margin: 0 0 20px 0;
   float: left;}
 
 .content_item
 {
   font: normal 200% 'Calibri', sans-serif;
-  width: 940px;}
+  width: 1280px;}
 
 .content_container
 { width: 330px;
@@ -272,37 +232,26 @@ ul img {
   float: left;}
 
 footer
-{ width: 940px;
+{ width: 1280px;
   height: 24px;
   padding-top: 10px;
   padding-bottom: 15px;
   font: bold 90% 'Calibri', sans-serif;
   text-align: center;
   text-shadow: 1px 1px #000;
-  color: #FFF;
-  background: #006600;
+  color: #000;
+  background: #DBDBDB;
   -moz-border-radius: 15px 15px 15px 15px;
   -webkit-border: 15px 15px 15px 15px;
   -webkit-box-shadow: rgba(0, 0, 0, 0.5) 0px 0px 5px;
-  -moz-box-shadow: rgba(0, 0, 0, 0.5) 0px 0px 5px;
-  box-shadow: rgba(0, 0, 0, 0.5) 0px 0px 5px;}
+  -moz-box-shadow: rgba(0, 0, 0, 0.5) 0px 0px 5px;}
 
-footer a, footer a:hover
-{ text-shadow: 1px 1px #FFF;
-  color: #1D1D1D;
-  text-decoration: none;
-  padding-bottom: 20px;}
-
-footer a:hover
-{ text-decoration: underline;}
-
-footer a, footer a:hover
-{ text-shadow: 1px 1px #000;
-  color: #FFF;
+footer a
+{  color: #000;
   text-decoration: none;}
 
 footer a:hover
-{ text-decoration: underline;}
+{  text-decoration: underline;}
 
  .readmore a
 { color: #FFF;
@@ -340,11 +289,11 @@ footer a:hover
   width: 280px;
   text-align: left;
   text-shadow: none;
-  color: #000;}
+  color: #FFF;}
 
 .form_settings input, .form_settings textarea
 { padding: 2px;
-  width: 299px;
+  width: 699px;
   font: 100% arial;
   border: 1px solid #E5E5DB;
   background: #FFF;

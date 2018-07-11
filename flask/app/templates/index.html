@@ -12,61 +12,45 @@
 </head>
 
 <body>
-
 <div id="main">
-  <header style="width: 940px">
-    <div id="strapline">
-      <div id="welcome_slogan" style="padding-top: 0px;">
-      <nav>
-          <div id="menubar" style="padding-top: 0px;margin-left: 0px;">
-            <ul id="nav" style="width: 900px">
-              <li class="current"><a href="/" style="margin-left: 10px;">TaxiOptimizer</a></li>
-              <li><a href="https://docs.google.com/presentation/d/1V-o_qdBsNrF3CqcZ8IEAIutShCZSpA50DUarSyjMSt0/edit?usp=sharing" target="_blank">Slideshare</a></li>
-              <li><a href="/demo">Video</a></li>
-            </ul>
-          </div><!--close menubar-->
-        </nav>
-      </div><!--close welcome_slogan-->
-    </div><!--close strapline-->
-  </header>
 
-{% block forms %}
-  <form action='track' method='get' align='center'>
-      Enter taxi ID to track:<br>
-      <input id="field1" type="text" name="vehicle_id" value="" placeholder="leave blank for random" ><br>
-      <input type="submit" onclick="window.location.href='/track'" value="Add taxi to map!">
-  </form>
-  <form align='center'>
-    Time:<br>
-    <p id="timestr"></p>
-  </form>
-{% endblock %}
+<header style="width: 1280px; padding-top: 15px; padding-bottom: 15px;">
+    <div style="float: left; font-size: 32px;">  <a href="/">TaxiOptimizer</a> </div>
+    <div style="float: right;">
+      <form action='track' method='get' align='center'>
+        <br> Time: <input id="timestr" type="text" value="" placeholder="nothing to display yet"> &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp
+	Enter taxi ID to track:
+        <input id="field1" type="text" name="vehicle_id" value="" placeholder="leave blank for random" >
+        <input type="submit" onclick="window.location.href='/track'" value="Add taxi to map!">
+      </form>
+    </div>
+</header>
+
 
   <div id="site_content">
-    {% block maincontent %}
     <div id="map-container" style="padding-top: 0px;">
-        <div id="map-canvas"></div>
+      <div id="map-canvas"></div>
     </div>
-    {% endblock %}
     <div id="content">
-        <div class="content_item">
-         <footer style="padding-top: 30px;">
+      <div class="content_item">
+        <footer style="padding-top: 30px;">
           <span style="float: left; color:#FFF">
-            &nbsp&nbsp&nbsp&nbsp <a>Andrey Bozhko</a>
+            &nbsp&nbsp&nbsp&nbsp <a href="mailto:andybozhko@gmail.com">Andrey Bozhko</a>
+          </span>
+          <span style="float: center">
+            <a href="https://docs.google.com/presentation/d/1V-o_qdBsNrF3CqcZ8IEAIutShCZSpA50DUarSyjMSt0/edit?usp=sharing" target="_blank">Slideshare</a>       |
+            <a href="https://docs.google.com/presentation/d/1V-o_qdBsNrF3CqcZ8IEAIutShCZSpA50DUarSyjMSt0/edit?usp=sharing" target="_blank">Video</a>
           </span>
           <span style="float: right; color:#FFF">
-            <a href="mailto:andybozhko@gmail.com">Email</a>     |
             <a href="https://github.com/AndreyBozhko/TaxiOptimizer">Github</a>     |
-            <a href="https://www.linkedin.com/in/andrey-bozhko">Linkedin</a>&nbsp&nbsp&nbsp&nbsp
+            <a href="https://www.linkedin.com/in/andrey-bozhko">LinkedIn</a>	&nbsp&nbsp&nbsp&nbsp
           </span>
         </footer>
-        </div>
-      </div><!--close content-->
-    <div id="content">
-            </div><!--close content-->
-  </div><!--close site_content-->
+      </div>
+    </div>
+  </div>
 
 
-</div><!--close main-->
+</div>
 </body>
 </html>

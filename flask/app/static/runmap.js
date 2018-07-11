@@ -81,7 +81,7 @@ function update_values() {
             spots   = data.spots;
             corners = data.corners;
 
-            document.getElementById("timestr").innerHTML = data.timestr;
+            document.getElementById("timestr").value = data.timestr;
 
             if (vid.length > taxi.length) {
               for (var j = taxi.length; j < vid.length; j++) { create_markers(); }
@@ -90,8 +90,8 @@ function update_values() {
             for (var j = 0; j < taxi.length; j++) {
               taxi[j].setPosition(new google.maps.LatLng(taxiloc[j]));
 
-              // var infowindow = new google.maps.InfoWindow({content: vid[j]});
-              // taxi[j].addListener('click', function() {infowindow.open(map, taxi[j]);});
+              var infowindow = new google.maps.InfoWindow({content: vid[j]});
+              taxi[j].addListener('click', function() {infowindow.open(map, taxi[j]);});
 
               for (var k=0; k<9; k++) {
                 var xx = k%3;

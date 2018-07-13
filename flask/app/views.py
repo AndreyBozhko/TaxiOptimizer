@@ -112,6 +112,7 @@ app.allowed_taxis = [x[0] for x in app.allowed_taxis]
 @app.route('/')
 @app.route('/index')
 def index():
+    app.curtime = 600
     app.vid, app.coords = [], []
     return render_template('index.html', APIkey=app.APIkey)
 

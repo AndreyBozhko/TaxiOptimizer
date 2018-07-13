@@ -212,10 +212,11 @@ class TaxiStreamer(SparkStreamerFromKafka):
             # save data
             self.psql_n += 1
             configs = {key: self.psql_config[key] for key in ["url", "driver", "user", "password"]}
-            configs["dbtable"] = self.psql_config["dbtable_stream"] #+str(self.psql_n)
+            configs["dbtable"] = self.psql_config["dbtable_stream"]
 
             postgres.save_to_postgresql(resDF, self.sqlContext, configs, self.stream_config["mode_stream"])
-            postgres.add_index_postgresql(configs["dbtable"], "vehicle_id", self.psql_config)
+            if self.psql_n == 1:
+                postgres.add_index_postgresql(configs["dbtable"], "vehicle_id", self.psql_config)
 
         except:
             pass

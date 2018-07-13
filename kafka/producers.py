@@ -50,6 +50,7 @@ class MyKafkaProducer(object):
         produces messages and sends them to topic
         """
         msg_cnt = 0
+        orders = {}
 
         while True:
 
@@ -62,8 +63,20 @@ class MyKafkaProducer(object):
 
                 message_info = line.strip()
                 msg = helpers.map_schema(message_info, self.schema)
+                msg = helpers.add_block_fields(msg)
+                msg = helpers.add_time_slot_field(msg)
 
                 if msg is not None:
+
+                    if (msg["vehicle_id"] in orders and orders[msg["vehicle_id"]][1] == (msg["time_slot"],
+                                                                                         msg["block_latid"],
+                                                                                         msg["block_lonid"])):
+                        msg["order"] = orders[msg["vehicle_id"]][0]
+                    else:
+                        msg["order"] = msg_cnt
+
+                    orders[msg["vehicle_id"]] = (msg["order"], (msg["time_slot"], msg["block_latid"], msg["block_lonid"]))
+
                     self.producer.send(self.kafka_config["TOPIC"],
                                        value=json.dumps(msg),
                                        key=self.get_key(msg))

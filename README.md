@@ -10,6 +10,10 @@ This project aims at optimizing the daily routine of NYC yellow cab drivers by a
 
 Each one of ~14,000 cabs is streaming its real-time location to **TaxiOptimizer**, and in return they are suggested up to 5 locations around them where there are higher chances to find fares. If several drivers are nearby, the service provides them with different results to reduce the competition between them.
 
+> *The results for nearby drivers are customized based either on the unique id of each taxi (branch `master` of this project), or on the order in which they arrive in a particular neighborhood (branch `stateful`).*
+
+![alt text](https://github.com/AndreyBozhko/TaxiOptimizer/blob/master/docs/map.jpg "TaxiOptimizer Screenshot")
+
 I define the top pickup spots within each neighborhood for any given 10-minute interval of the day as ~5m x 5m chunks of city streets with the most number of previous taxi rides from those spots, based on the historical data.
 
 

@@ -2,7 +2,7 @@
 > ***find fares and avoid competition***
 
 This is a project I completed during the Insight Data Engineering program (New York, Summer 2018).
-Visit [taxioptimizer.com](http://taxioptimizer.com) to see it in action.
+Visit [taxioptimizer.com](http://taxioptimizer.com) to see it in action (or watch it [here](https://youtu.be/SUgCPqrCQWE)).
 
 ***
 

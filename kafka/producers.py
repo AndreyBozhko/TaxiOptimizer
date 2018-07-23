@@ -25,9 +25,8 @@ class MyKafkaProducer(object):
         :type s3_configfile   : str     path to S3 config file
         """
         self.kafka_config = helpers.parse_config(kafka_configfile)
-
-        self.schema = helpers.parse_config(schema_file)
-        self.s3_config = helpers.parse_config(s3_configfile)
+        self.schema       = helpers.parse_config(schema_file)
+        self.s3_config    = helpers.parse_config(s3_configfile)
 
         self.producer = KafkaProducer(bootstrap_servers=self.kafka_config["BROKERS_IP"])
 
